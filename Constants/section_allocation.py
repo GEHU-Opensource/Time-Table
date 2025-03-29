@@ -61,6 +61,7 @@ class StudentScorer:
         grouped_by_score = defaultdict(list)
         for student in students:
             grouped_by_score[student["score"]].append(student)
+            grouped_by_score[student["score"]].append(student)
 
         sections = []
         current_section = []
@@ -93,9 +94,9 @@ def generate_students(num_students: int = 500) -> List[Dict]:
 
     return [
         {
-            'ID': i,
-            'CGPA': round(random.uniform(6.0, 9.8), 2),
-            'Hostler': random.choice([True, False])
+            "ID": i,
+            "CGPA": round(random.uniform(6.0, 9.8), 2),
+            "Hostler": random.choice([True, False]),
         }
         for i in range(1, num_students + 1)
     ]
@@ -107,7 +108,9 @@ if __name__ == "__main__":
     students = generate_students(num_students=500)
 
     # Calculate the dynamic CGPA threshold
-    cgpa_threshold = scorer.calculate_dynamic_cgpa_threshold(students, top_percentage=30)
+    cgpa_threshold = scorer.calculate_dynamic_cgpa_threshold(
+        students, top_percentage=30
+    )
     print(f"Dynamic CGPA Threshold (Top 30%): {cgpa_threshold}")
 
     # Assign conditions and scores
@@ -115,7 +118,9 @@ if __name__ == "__main__":
     students_with_scores = scorer.assign_scores_to_students(students)
 
     # Divide students into sections
-    sections = scorer.divide_students_into_sections(students_with_scores, Defaults.class_strength)
+    sections = scorer.divide_students_into_sections(
+        students_with_scores, Defaults.class_strength
+    )
 
     # Display the sections
     for i, section in enumerate(sections, 1):
