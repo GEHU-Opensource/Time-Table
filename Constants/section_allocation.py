@@ -43,14 +43,13 @@ class StudentScorer:
     def assign_scores_to_students(self, students):
         # Step 1: Calculate CGPA threshold
         cgpa_threshold = self.calculate_dynamic_cgpa_threshold(students)
-        self.assign_dynamic_conditions(cgpa_threshold)  # Ensure the condition is updated
-
-        print(f"CGPA threshold set at: {cgpa_threshold}")
+        self.assign_dynamic_conditions(cgpa_threshold) 
+        
 
         # Step 2: Assign scores
         for student in students:
             student["score"] = self.calculate_student_score(student)
-            print(f"Assigned Score: {student['student_name']} - {student['score']}")
+            
 
         return students
 
