@@ -24,12 +24,9 @@ class TimetableFitnessEvaluator:
         teacher_time_preferences,
         teacher_daily_workload,
         time_slots,
-        config=None,
     ):
         self.timetable = timetable
-        self.defaults = Defaults(config)
-        self.penalty_constants = PenaltyConstants(config)
-        self.available_days = self.defaults.working_days
+        self.available_days = Defaults.working_days
         self.all_sections = all_sections
         self.subject_teacher_mapping = subject_teacher_mapping
         self.available_classrooms = available_classrooms
@@ -54,7 +51,7 @@ class TimetableFitnessEvaluator:
                 daily_section_fitness_scores[week][day] = {}
                 day_fitness = 0
                 for section, section_schedule in day_schedule.items():
-                    section_fitness = self.defaults.starting_section_fitness
+                    section_fitness = Defaults.starting_section_fitness
 
                     classroom_time_slot_tracking = {}
 
@@ -72,7 +69,7 @@ class TimetableFitnessEvaluator:
                             assigned_time_slot,
                         ) in teacher_time_slot_tracking.keys():
                             section_fitness -= (
-                                self.penalty_constants.PENALTY_TEACHER_DOUBLE_BOOKED
+                                PenaltyConstants.PENALTY_TEACHER_DOUBLE_BOOKED
                             )
                         else:
                             teacher_time_slot_tracking[
@@ -85,7 +82,7 @@ class TimetableFitnessEvaluator:
                             assigned_time_slot,
                         ) in classroom_time_slot_tracking:
                             section_fitness -= (
-                                self.penalty_constants.PENALTY_CLASSROOM_DOUBLE_BOOKED
+                                PenaltyConstants.PENALTY_CLASSROOM_DOUBLE_BOOKED
                             )
                         else:
                             classroom_time_slot_tracking[
@@ -94,9 +91,9 @@ class TimetableFitnessEvaluator:
 
                         # Penalty 3: Over-capacity classrooms
                         if section_strength > self.classroom_capacity.get(
-                            assigned_classroom, self.defaults.max_class_capacity
+                            assigned_classroom, Defaults.max_class_capacity
                         ):
-                            section_fitness -= self.penalty_constants.PENALTY_OVER_CAPACITY
+                            section_fitness -= PenaltyConstants.PENALTY_OVER_CAPACITY
 
                         # Penalty 4: Assigning teachers during unpreferred time slots
                         preferred_time_slots = self.teacher_time_preferences.get(
@@ -104,7 +101,7 @@ class TimetableFitnessEvaluator:
                         )
                         if assigned_time_slot not in preferred_time_slots:
                             section_fitness -= (
-                                self.penalty_constants.PENALTY_UN_PREFERRED_SLOT
+                                PenaltyConstants.PENALTY_UN_PREFERRED_SLOT
                             )
 
                         # Penalty 5: Scheduling teacher on a non-duty day
@@ -112,7 +109,7 @@ class TimetableFitnessEvaluator:
                         if assigned_day not in TeacherWorkload.teacher_duty_days.get(
                             assigned_teacher, []
                         ):
-                            section_fitness -= self.penalty_constants.PENALTY_NON_DUTY_DAY
+                            section_fitness -= PenaltyConstants.PENALTY_NON_DUTY_DAY
 
                         # Tracking teacher workload
                         if assigned_teacher not in teacher_workload_tracking:
@@ -128,7 +125,7 @@ class TimetableFitnessEvaluator:
                                 teacher, 0
                             ):
                                 section_fitness -= (
-                                    self.penalty_constants.PENALTY_OVERLOAD_TEACHER
+                                    PenaltyConstants.PENALTY_OVERLOAD_TEACHER
                                 )
 
                     daily_section_fitness_scores[week][day][section] = section_fitness

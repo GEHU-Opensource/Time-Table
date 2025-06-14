@@ -5,13 +5,12 @@ from Constants.constant import SectionsConstants
 
 
 class StudentScorer:
-    def __init__(self, attribute_weights: Dict[str, int] = None, config=None):
+    def __init__(self, attribute_weights: Dict[str, int] = None):
         """
         Initialize the scorer with attribute weights.
         Defaults to SectionsConstants.ATTRIBUTE_WEIGHTS if not provided.
         """
-        self.sections_constants = SectionsConstants(config)
-        self.attribute_weights = attribute_weights or self.sections_constants.ATTRIBUTE_WEIGHTS
+        self.attribute_weights = attribute_weights or SectionsConstants.ATTRIBUTE_WEIGHTS
 
     def calculate_dynamic_cgpa_threshold(self, students: List[Dict], top_percentage: int = 30) -> float:
         """
@@ -28,7 +27,7 @@ class StudentScorer:
         """
         Assign a dynamic condition for CGPA based on the threshold.
         """
-        self.sections_constants.ATTRIBUTE_CONDITIONS["good_cgpa"] = lambda student: student.get("cgpa", 0) >= cgpa_threshold
+        SectionsConstants.ATTRIBUTE_CONDITIONS["good_cgpa"] = lambda student: student.get("cgpa", 0) >= cgpa_threshold
 
     def calculate_student_score(self, student: Dict) -> int:
         """
@@ -36,7 +35,7 @@ class StudentScorer:
         """
         total_score = 0
         for attribute, weight in self.attribute_weights.items():
-            condition_func = self.sections_constants.ATTRIBUTE_CONDITIONS.get(attribute, lambda x: False)
+            condition_func = SectionsConstants.ATTRIBUTE_CONDITIONS.get(attribute, lambda x: False)
             if condition_func(student):    
                 total_score += weight
         return total_score
