@@ -35,6 +35,21 @@ class TimetableConfig:
     fixed_teacher_assignment: dict = None
 
 
+    timetable = timetable_generator.create_timetable(Defaults().initial_no_of_chromosomes)
+    # Fitness of each Chromosome
+    fitness_calculator = TimetableFitnessEvaluator(
+        timetable,
+        timetable_generator.sections_manager.sections,
+        SubjectTeacherMap.subject_teacher_map,
+        timetable_generator.classrooms_manager.classrooms,
+        timetable_generator.classrooms_manager.labs,
+        timetable_generator.room_capacity_manager.room_capacity,
+        timetable_generator.room_capacity_manager.section_strength,
+        timetable_generator.subject_quota_limits,
+        timetable_generator.teacher_availability_preferences,
+        timetable_generator.weekly_workload,
+    )
+
 class TimetableEngine:
     def __init__(self, config: TimetableConfig):
         self.config = config
@@ -141,6 +156,11 @@ class TimetableEngine:
 
         updated_lab = self._update_lab_availability(best_chromosome)
         return best_chromosome, updated_teacher, updated_lab
+
+def run_timetable_generation():
+  for generation in range(Defaults().total_no_of_generations):
+        best_chromosome = timetable_generation()
+    return best_chromosome
 
 
 def run_timetable_generation(

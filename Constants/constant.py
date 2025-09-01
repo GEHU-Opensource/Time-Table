@@ -58,14 +58,19 @@ class PenaltyConstants:
 
 
 class SectionsConstants:
-    def __init__(self, config=None):
-        config = config or {}
-        # Define attribute weights and conditions
-        self.ATTRIBUTE_WEIGHTS = config.get('attribute_weights', {
-            "good_cgpa": 1,  # 2^0
-            "hostler": 2,  # 2^1
-        })
+    # Define attribute weights and conditions
+    ATTRIBUTE_WEIGHTS = {
+        'good_cgpa': 1,         # 2^0
+        'hostler': 2,           # 2^1
+    }
 
-        self.ATTRIBUTE_CONDITIONS = config.get('attribute_conditions', {
-            "hostler": lambda student: student.get("is_hosteller", False),
-        })
+    ATTRIBUTE_CONDITIONS = {
+        'hostler': lambda student: student.get('Hostler', False),
+    }
+    
+    # Add class-level attributes to Defaults for backward compatibility
+    Defaults.working_days = Defaults().working_daysD
+    Defaults.max_class_capacity = Defaults().max_class_capacity
+    Defaults.initial_no_of_chromosomes = Defaults().initial_no_of_chromosomes
+    Defaults.total_no_of_generations = Defaults().total_no_of_generations
+
