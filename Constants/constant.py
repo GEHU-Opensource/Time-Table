@@ -1,28 +1,24 @@
 class Defaults:
-    # All the defaults values over GA folder.
-    room_capacity = 60
-    working_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    starting_section_fitness = 1000
-    max_class_capacity = 250
-    initial_no_of_chromosomes = 10
-    total_no_of_generations = 10
+    def __init__(self, config=None):
+        config = config or {}
+        self.room_capacity = config.get('room_capacity', 60)
+        self.working_days = config.get('working_days', ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
+        self.starting_section_fitness = config.get('starting_section_fitness', 1000)
+        self.max_class_capacity = config.get('max_class_capacity', 250)
+        self.initial_no_of_chromosomes = config.get('initial_no_of_chromosomes', 1000)
+        self.total_no_of_generations = config.get('total_no_of_generations', 100)
+        self.class_strength = config.get('class_strength', 50)
 
 
-class Sections:
-    def __init__(self, section_number):
-        self.sections = [chr(65 + i) for i in range(section_number)]
 
+class TeacherPreferences:
+    def __init__(self, teacher_weekly_workload: dict):
+        self.teacher_preferences = {}
+        for teacher, workload in teacher_weekly_workload.items():
+            self.teacher_preferences[teacher] = list(range(1, 8))
 
-class Classrooms:
-    def __init__(self, room_count, lab_count):
-        self.classrooms = [f"R{i + 1}" for i in range(room_count)]
-        self.labs = [f"L{i + 1}" for i in range(lab_count)]
-
-
-class RoomCapacity:
-    def __init__(self, classrooms, sections, default_capacity=Defaults.room_capacity):
-        self.room_capacity = {room: default_capacity for room in classrooms}
-        self.section_strength = {section: default_capacity for section in sections}
+    def get_preferences(self):
+        return self.teacher_preferences
 
 
 class SubjectWeeklyQuota:
@@ -42,19 +38,23 @@ class TeachersDutyDays:
 
 
 class SpecialSubjects:
-    def __init__(self, special_subjects: list, labs: list, specialization_subjects: list):
+    def __init__(
+        self, special_subjects: list, labs: list, specialization_subjects: list
+    ):
         self.special_subjects = special_subjects
         self.labs = labs
         self.specialization_subjects = specialization_subjects
 
 
 class PenaltyConstants:
-    PENALTY_TEACHER_DOUBLE_BOOKED = 30
-    PENALTY_CLASSROOM_DOUBLE_BOOKED = 20
-    PENALTY_OVER_CAPACITY = 25
-    PENALTY_UN_PREFERRED_SLOT = 5
-    PENALTY_OVERLOAD_TEACHER = 10
-    PENALTY_NON_DUTY_DAY=40
+    def __init__(self, config=None):
+        config = config or {}
+        self.PENALTY_TEACHER_DOUBLE_BOOKED = config.get('teacher_double_booked', 30)
+        self.PENALTY_CLASSROOM_DOUBLE_BOOKED = config.get('classroom_double_booked', 20)
+        self.PENALTY_OVER_CAPACITY = config.get('over_capacity', 25)
+        self.PENALTY_UN_PREFERRED_SLOT = config.get('un_preferred_slot', 5)
+        self.PENALTY_OVERLOAD_TEACHER = config.get('overload_teacher', 10)
+        self.PENALTY_NON_DUTY_DAY = config.get('non_duty_day', 40)
 
 
 class SectionsConstants:
@@ -68,9 +68,9 @@ class SectionsConstants:
         'hostler': lambda student: student.get('Hostler', False),
     }
     
-# Add class-level attributes to Defaults for backward compatibility
-Defaults.working_days = Defaults().working_daysD
-Defaults.max_class_capacity = Defaults().max_class_capacity
-Defaults.initial_no_of_chromosomes = Defaults().initial_no_of_chromosomes
-Defaults.total_no_of_generations = Defaults().total_no_of_generations
+    # Add class-level attributes to Defaults for backward compatibility
+    Defaults.working_days = Defaults().working_daysD
+    Defaults.max_class_capacity = Defaults().max_class_capacity
+    Defaults.initial_no_of_chromosomes = Defaults().initial_no_of_chromosomes
+    Defaults.total_no_of_generations = Defaults().total_no_of_generations
 
