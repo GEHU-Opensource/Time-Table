@@ -69,7 +69,7 @@ class SectionsConstants:
     }
     
     # Add class-level attributes to Defaults for backward compatibility
-    Defaults.working_days = Defaults().working_daysD
+    Defaults.working_days = Defaults().working_days
     Defaults.max_class_capacity = Defaults().max_class_capacity
     Defaults.initial_no_of_chromosomes = Defaults().initial_no_of_chromosomes
     Defaults.total_no_of_generations = Defaults().total_no_of_generations

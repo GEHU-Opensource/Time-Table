@@ -35,21 +35,6 @@ class TimetableConfig:
     fixed_teacher_assignment: dict = None
 
 
-    timetable = timetable_generator.create_timetable(Defaults().initial_no_of_chromosomes)
-    # Fitness of each Chromosome
-    fitness_calculator = TimetableFitnessEvaluator(
-        timetable,
-        timetable_generator.sections_manager.sections,
-        SubjectTeacherMap.subject_teacher_map,
-        timetable_generator.classrooms_manager.classrooms,
-        timetable_generator.classrooms_manager.labs,
-        timetable_generator.room_capacity_manager.room_capacity,
-        timetable_generator.room_capacity_manager.section_strength,
-        timetable_generator.subject_quota_limits,
-        timetable_generator.teacher_availability_preferences,
-        timetable_generator.weekly_workload,
-    )
-
 class TimetableEngine:
     def __init__(self, config: TimetableConfig):
         self.config = config
@@ -87,7 +72,9 @@ class TimetableEngine:
             time_slots=self.config.time_slots,
             fixed_teacher_assignment=self.config.fixed_teacher_assignment or {}
         )
+
         timetable, updated_teacher = tg.create_timetable(self.config.total_generations)[:2]
+
         fitness = TimetableFitnessEvaluator(
             timetable=timetable,
             all_sections=list(tg.sections_manager.keys()),
@@ -156,11 +143,6 @@ class TimetableEngine:
 
         updated_lab = self._update_lab_availability(best_chromosome)
         return best_chromosome, updated_teacher, updated_lab
-
-def run_timetable_generation():
-  for generation in range(Defaults().total_no_of_generations):
-        best_chromosome = timetable_generation()
-    return best_chromosome
 
 
 def run_timetable_generation(
@@ -269,10 +251,9 @@ if __name__ == "__main__":
             "3:30 - 4:25": 7,
         },
         fixed_teacher_assignment={
-            "A": {"TCS-531": "AB01", "TMA-502": "HP18"},  # section: {"subject": teacher}
+            "A": {"TCS-531": "AB01", "TMA-502": "HP18"},
             "B": {"TCS-503": "BJ10"}
         }
     )
 
-    from icecream import ic
-    ic(best_tt, final_teacher, final_lab)
+    print(best_tt, final_teacher, final_lab)
