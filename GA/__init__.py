@@ -255,5 +255,5 @@ if __name__ == "__main__":
             "B": {"TCS-503": "BJ10"}
         }
     )
-
-    print(best_tt, final_teacher, final_lab)
+    from icecream import ic
+    ic(best_tt, final_teacher, final_lab)

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Timetable Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { padding: 20px; }
+    .result { margin-top: 30px; }
+    pre { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">University Timetable Generator</h1>
+
+    <form id="timetableForm" class="row g-3">
+
+      <!-- Sections -->
+      <div class="col-md-6">
+        <label class="form-label">Sections & Strength</label>
+        <textarea class="form-control" id="sections" rows="2"
+          placeholder='e.g. {"A": 70, "B": 100}'></textarea>
+      </div>
+
+      <!-- Classrooms -->
+      <div class="col-md-6">
+        <label class="form-label">Classrooms & Capacity</label>
+        <textarea class="form-control" id="classrooms" rows="2"
+          placeholder='e.g. {"R1": 200, "R2": 230}'></textarea>
+      </div>
+
+      <!-- Labs -->
+      <div class="col-md-6">
+        <label class="form-label">Labs & Capacity</label>
+        <textarea class="form-control" id="labs" rows="2"
+          placeholder='e.g. {"L1": 70, "L2": 50}'></textarea>
+      </div>
+
+      <!-- Subject-Teacher Mapping -->
+      <div class="col-md-6">
+        <label class="form-label">Subjects → Teacher IDs</label>
+        <textarea class="form-control" id="subjects" rows="2"
+          placeholder='e.g. {"TCS-531": "AB01", "TMA-502": "HP18"}'></textarea>
+      </div>
+
+      <!-- Generations -->
+      <div class="col-md-4">
+        <label class="form-label">Generations</label>
+        <input type="number" class="form-control" id="generations" value="20">
+      </div>
+
+      <!-- Submit -->
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Generate Timetable</button>
+      </div>
+    </form>
+
+    <!-- Result -->
+    <div class="result">
+      <h3>Result</h3>
+      <pre id="output">Fill the form and click "Generate Timetable".</pre>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("timetableForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      // collect values
+      const sections = JSON.parse(document.getElementById("sections").value || "{}");
+      const classrooms = JSON.parse(document.getElementById("classrooms").value || "{}");
+      const labs = JSON.parse(document.getElementById("labs").value || "{}");
+      const subjects = JSON.parse(document.getElementById("subjects").value || "{}");
+      const generations = parseInt(document.getElementById("generations").value || "20");
+
+      // build payload (minimal input)
+      const payload = {
+        sections,
+        classrooms,
+        labs,
+        subjects,
+        generations
+      };
+
+      try {
+        const res = await fetch("http://127.0.0.1:5000/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById("output").textContent = "Error: " + err;
+      }
+    });
+  </script>
+</body>
+</html>
