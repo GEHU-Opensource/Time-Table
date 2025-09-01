@@ -31,7 +31,7 @@ def timetable_generation():
         teacher_duty_days=TeacherWorkload.teacher_duty_days,
     )
 
-    timetable = timetable_generator.create_timetable(Defaults.initial_no_of_chromosomes)
+    timetable = timetable_generator.create_timetable(Defaults().initial_no_of_chromosomes)
     # Fitness of each Chromosome
     fitness_calculator = TimetableFitnessEvaluator(
         timetable,
@@ -88,7 +88,7 @@ def timetable_generation():
 
 
 def run_timetable_generation():
-    for generation in range(Defaults.total_no_of_generations):
+  for generation in range(Defaults().total_no_of_generations):
         best_chromosome = timetable_generation()
     return best_chromosome
 
