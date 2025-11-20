@@ -32,7 +32,11 @@ def update_matrix_for_best(
     return teacher_availability_matrix
 
 
-def initialize_teacher_availability(teacher_list, num_days=5, num_slots=7):
+def initialize_teacher_availability(
+    teacher_list,
+    num_days=5,
+    num_slots=7
+):
     return {
         teacher: [[True] * num_slots for _ in range(num_days)]
         for teacher in teacher_list
