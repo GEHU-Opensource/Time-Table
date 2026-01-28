@@ -1,116 +1,192 @@
-# Timetable Scheduling Project
+# Timetable Management System
 
-## 📚 Overview
-Welcome to the **Timetable Scheduling Project**! This repository documents research, findings, discussions, and progress on creating an efficient timetable scheduling system that addresses real-world challenges in academic scheduling. Our goal is to develop a scheduling model that optimally assigns rooms, teachers, and time slots while accommodating various constraints.
+A comprehensive, scalable timetable management system with multi-tenant support, genetic algorithm optimization, and modern React frontend.
 
-## 🔍 Project Goals
-- **Optimal Assignment**: Effectively allocate rooms, teachers, and time slots.
-- **Constraint Management**: Consider teacher preferences, student load, room capacities, and subject assignments.
-- **Dynamic Adaptability**: Adjust to changes, such as adding new rooms or teachers, without complete model retraining.
-- **Simplicity and Flexibility**: Simplify complex constraints while remaining adaptable to real-world needs.
+## Features
 
-## 🧬 Genetic Algorithm
-The project employs a Genetic Algorithm (GA) to solve the scheduling problem, inspired by the principles of natural selection. Key modules in our GA include:
+- **Multi-Tenant Architecture**: Master admin can manage multiple colleges, each with their own dashboard
+- **Genetic Algorithm**: Optimized timetable generation with constraint handling
+- **Role-Based Access Control**: Master Admin, College Admin, HOD, Faculty, and Student roles
+- **Modern Frontend**: React with TypeScript, Tailwind CSS, and responsive design
+- **RESTful API**: Django REST Framework with JWT authentication
+- **Scalable Design**: PostgreSQL database, Celery for async tasks, Redis for caching
 
-1. **Data Encoding and Decoding**: Converting solutions into chromosomes for efficiency.
-2. **Initial Population**: Generating a diverse set of potential solutions under specified constraints.
-3. **Evaluation of Population**: Using a fitness function to assess solution quality.
-4. **Crossover Evolution**: Creating new solutions by combining existing ones.
-5. **Mutation**: Introducing random changes to explore new potential solutions.
+## Project Structure
 
-### Advantages
-- Flexibility compared to manual systems
-- Reduced processing power requirements
-- Quick generation of accurate timetables
-- User-friendly data entry and revision
-- Improved productivity and minimal paperwork
+```
+Time-Table/
+├── backend/                 # Django backend
+│   ├── algorithm/          # Genetic algorithm implementation
+│   ├── api/                # Authentication endpoints
+│   ├── core/               # Core models, views, serializers
+│   └── timetable_backend/  # Django settings
+├── frontend/               # React frontend
+│   └── src/
+│       ├── pages/         # Page components
+│       ├── components/    # Reusable components
+│       ├── stores/        # State management
+│       └── lib/           # Utilities
+└── README.md
+```
 
-### Disadvantages
-- Requires initial raw content input
-- High memory consumption
-- Internet connectivity needed
+## Setup Instructions
 
-## 📋 Applications
-The genetic algorithm can efficiently create various timetables, including:
-- University Timetable
-- Exam Timetable
-- School Timetable
-- College Timetable
-- Teacher Timetable
+### Backend Setup
 
-## 📊 Results
-The system generates distinct timetables for each class, faculty member, and lab, preventing slot conflicts and allowing customization. The program meets both hard and soft scheduling constraints.
+1. **Navigate to backend directory:**
+   ```bash
+   cd backend
+   ```
 
-## ⚙️ Fitness Function
-The fitness function is a critical component of our Genetic Algorithm, as it evaluates the quality of each timetable solution. It incorporates both hard and soft constraints to ensure a balanced and effective scheduling outcome.
+2. **Create virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-### Hard Constraints
-These are strict requirements that must be satisfied for a solution to be considered valid:
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. **No Overlap**: 
-   - Teachers cannot be assigned to multiple classes at the same time.
-   - Time slots must not overlap for the same section.
-   - The same classroom cannot be allocated to multiple sections during the same time slot.
+4. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database credentials
+   ```
 
-2. **Room Capacity**:
-   - Each classroom's capacity must accommodate the number of students assigned to that class.
+5. **Set up database:**
+   ```bash
+   python manage.py makemigrations core
+   python manage.py migrate
+   ```
 
-3. **Time Slot Allocation**:
-   - Classes must be scheduled within designated time slots.
+6. **Create superuser (Master Admin):**
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-4. **Teacher Load Distribution**:
-   - The total hours assigned to a teacher should not exceed their maximum allowable teaching hours.
+7. **Run server:**
+   ```bash
+   python manage.py runserver
+   ```
 
-### Soft Constraints
-These are preferences that enhance the quality of the solution but are not mandatory:
+### Frontend Setup
 
-1. **Teacher Preferences**: 
-   - Assignments should consider teacher preferences for certain time slots or days.
+1. **Navigate to frontend directory:**
+   ```bash
+   cd frontend
+   ```
 
-2. **Gaps Between Classes**:
-   - Minimizing the number of gaps between classes for teachers is preferred.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-3. **Balanced Workload**:
-   - Aim for a balanced distribution of classes among teachers to prevent overloading any single teacher.
+3. **Run development server:**
+   ```bash
+   npm run dev
+   ```
 
-4. **Half Days for Sections**
-   - Every section should be provided half days so that resources can be utilised properly and also labs and calsses should be balanced.
+## Usage
 
-### Fitness Score Calculation
-The fitness score is calculated based on the following criteria:
+### Master Admin
 
-- Each hard constraint violation deducts a significant penalty from the score (e.g., -100 points for each violation).
-- Soft constraint preferences add to the score (e.g., +10 points for each preference met).
-- The final score is a reflection of both the number of constraints satisfied and the overall quality of the timetable.
+1. Login with master admin credentials
+2. Navigate to Colleges section to add/manage colleges
+3. Each college gets a unique subdomain and dashboard
+4. Manage users across all colleges
 
-A higher fitness score indicates a better solution, leading to more optimal timetables. The Genetic Algorithm iteratively evolves the population of solutions to maximize this fitness score over generations.
+### College Admin
 
-## 🚀 Future Scope
-This project aims to simplify faculty management by automatically assigning courses, considering workload balance, and tracking expertise. Future enhancements may include a master schedule for departments, integration with university websites, and personalized time slot assignments.
+1. Login with college admin credentials
+2. Set up departments, teachers, subjects, sections, and classrooms
+3. Generate timetables using the genetic algorithm
+4. View and manage generated timetables
 
-## 🛠️ Installation
+## API Endpoints
 
-To run this project, clone the repository, set up a virtual environment, and install the required dependencies:
+### Authentication
+- `POST /api/auth/register/` - Register new user
+- `POST /api/auth/login/` - Login
+- `GET /api/auth/me/` - Get current user
+- `POST /api/auth/logout/` - Logout
 
-```bash
-git clone https://github.com/yourusername/timetable-scheduling-project.git
-cd timetable-scheduling-project
+### Colleges (Master Admin only)
+- `GET /api/colleges/` - List colleges
+- `POST /api/colleges/` - Create college
+- `GET /api/colleges/{id}/` - Get college details
+- `PATCH /api/colleges/{id}/` - Update college
+- `DELETE /api/colleges/{id}/` - Delete college
 
-# Set up a virtual environment
-python -m venv venv
+### Timetables
+- `GET /api/timetables/` - List timetables
+- `POST /api/timetables/` - Create timetable
+- `GET /api/timetables/{id}/` - Get timetable details
+- `POST /api/generate-timetable/generate/` - Generate timetable using GA
 
-# Activate the virtual environment
-# For Linux/macOS:
-source venv/bin/activate
-# For Windows:
-.\venv\Scripts\activate
+## Algorithm
 
-# Install dependencies
-pip install -r requirements.txt
+The genetic algorithm optimizes timetable generation by:
 
-# Optionally, set up environment variables in a .env file (e.g., DATABASE_URL, SECRET_KEY)
-# Create and edit .env file with necessary variables
-touch .env
+1. **Initialization**: Creates random timetable populations
+2. **Fitness Evaluation**: Scores timetables based on constraint violations
+3. **Selection**: Selects best timetables for reproduction
+4. **Crossover**: Combines features from parent timetables
+5. **Mutation**: Introduces random changes for diversity
+6. **Iteration**: Repeats for specified generations
 
-echo "Setup complete. You can now run the application."
+### Constraints
 
+- **Hard Constraints**: Must be satisfied
+  - No teacher double-booking
+  - No classroom double-booking
+  - Room capacity limits
+  - Teacher availability
+
+- **Soft Constraints**: Preferences
+  - Teacher time preferences
+  - Balanced workload distribution
+  - Minimize gaps between classes
+
+## Sample Data
+
+To add sample data for testing:
+
+1. Use Django admin or API to create:
+   - Colleges
+   - Departments
+   - Teachers
+   - Subjects
+   - Sections
+   - Classrooms
+   - Subject-Teacher mappings
+
+2. Or use the management command (to be added):
+   ```bash
+   python manage.py load_sample_data
+   ```
+
+## Deployment
+
+### Backend
+- Use Gunicorn or uWSGI for production
+- Set up PostgreSQL database
+- Configure Redis for Celery
+- Set environment variables securely
+
+### Frontend
+- Build for production: `npm run build`
+- Serve static files with Nginx or similar
+- Configure API proxy
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License
