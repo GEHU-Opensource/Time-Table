@@ -37,7 +37,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = ['id', 'college', 'college_name', 'name', 'code', 'hod', 'hod_name', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'college']
 
 
 class TeacherSerializer(serializers.ModelSerializer):
@@ -62,7 +62,7 @@ class SubjectSerializer(serializers.ModelSerializer):
         model = Subject
         fields = ['id', 'college', 'college_name', 'code', 'name', 'credits', 
                  'weekly_quota', 'is_lab', 'department', 'department_name', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'college']
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -74,7 +74,7 @@ class SectionSerializer(serializers.ModelSerializer):
         model = Section
         fields = ['id', 'college', 'college_name', 'name', 'student_strength', 
                  'department', 'department_name', 'year', 'semester', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'college']
 
 
 class ClassroomSerializer(serializers.ModelSerializer):
@@ -86,7 +86,7 @@ class ClassroomSerializer(serializers.ModelSerializer):
         model = Classroom
         fields = ['id', 'college', 'college_name', 'name', 'capacity', 
                  'is_lab', 'department', 'department_name', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'college']
 
 
 class SubjectTeacherMappingSerializer(serializers.ModelSerializer):
@@ -114,7 +114,7 @@ class TimetableSerializer(serializers.ModelSerializer):
                  'semester', 'status', 'timetable_data', 'fitness_score', 
                  'generation_config', 'created_by', 'created_by_name', 
                  'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'fitness_score']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'fitness_score', 'college']
 
 
 class TeacherPreferenceSerializer(serializers.ModelSerializer):

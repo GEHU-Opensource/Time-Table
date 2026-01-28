@@ -105,7 +105,7 @@ class Department(models.Model):
     
     class Meta:
         db_table = 'departments'
-        unique_together = ['college', 'code']
+        unique_together = ['id']
     
     def __str__(self):
         return f"{self.name} ({self.college.name})"
@@ -123,7 +123,7 @@ class Teacher(models.Model):
     
     class Meta:
         db_table = 'teachers'
-        unique_together = ['department', 'employee_id']
+        unique_together = ['id']
     
     def __str__(self):
         return f"{self.user.full_name} ({self.employee_id})"

@@ -47,8 +47,10 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         return Department.objects.filter(college=user.college)
     
     def perform_create(self, serializer):
-        if self.request.user.role != 'master_admin':
-            serializer.save(college=self.request.user.college)
+        if not self.request.user.college:
+            raise ValidationError("User has no college assigned")
+
+        serializer.save(college=self.request.user.college)
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -78,8 +80,10 @@ class SubjectViewSet(viewsets.ModelViewSet):
         return Subject.objects.filter(college=user.college)
     
     def perform_create(self, serializer):
-        if self.request.user.role != 'master_admin':
-            serializer.save(college=self.request.user.college)
+
+        if not self.request.user.college:
+            raise ValidationError("User has no college assigned")
+        serializer.save(college=self.request.user.college)
 
 
 class SectionViewSet(viewsets.ModelViewSet):
@@ -95,8 +99,9 @@ class SectionViewSet(viewsets.ModelViewSet):
         return Section.objects.filter(college=user.college)
     
     def perform_create(self, serializer):
-        if self.request.user.role != 'master_admin':
-            serializer.save(college=self.request.user.college)
+        if not self.request.user.college:
+            raise ValidationError("User has no college assigned")
+        serializer.save(college=self.request.user.college)
 
 
 class ClassroomViewSet(viewsets.ModelViewSet):
@@ -113,8 +118,9 @@ class ClassroomViewSet(viewsets.ModelViewSet):
         return Classroom.objects.filter(college=user.college)
     
     def perform_create(self, serializer):
-        if self.request.user.role != 'master_admin':
-            serializer.save(college=self.request.user.college)
+        if not self.request.user.college:
+            raise ValidationError("User has no college assigned")
+        serializer.save(college=self.request.user.college)
 
 
 class SubjectTeacherMappingViewSet(viewsets.ModelViewSet):
@@ -160,8 +166,13 @@ class TimetableViewSet(viewsets.ModelViewSet):
         return Timetable.objects.filter(college=user.college)
     
     def perform_create(self, serializer):
-        if self.request.user.role != 'master_admin':
-            serializer.save(college=self.request.user.college, created_by=self.request.user)
+        if not self.request.user.college:
+            raise ValidationError("User has no college assigned")
+
+        serializer.save(
+            college=self.request.user.college,
+            created_by=self.request.user
+        )
 
 
 class GenerateTimetableViewSet(viewsets.ViewSet):
