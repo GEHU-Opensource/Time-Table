@@ -1,0 +1,30 @@
+extends layout.pug
+
+block content
+  section.card
+    h1 Sign in
+    form.stack(method="post" action="{% url 'login' %}")
+      - csrf_token
+      input(type="hidden" name="next" value="{{ next }}")
+      if form.non_field_errors
+        ul.errorlist
+          each e in form.non_field_errors
+            li= e
+      label
+        | {{ form.username.label }}
+        | {{ form.username }}
+        if form.username.errors
+          ul.errorlist
+            each e in form.username.errors
+              li= e
+      label
+        | {{ form.password.label }}
+        | {{ form.password }}
+        if form.password.errors
+          ul.errorlist
+            each e in form.password.errors
+              li= e
+      div
+        button(type="submit") Sign in
+    p
+      a(href="{% url 'password-reset' %}") Forgot your password?

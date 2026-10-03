@@ -1,0 +1,78 @@
+from django.urls import path
+
+from timetable import views
+from timetable.models import Resource
+
+urlpatterns = [
+    path("", views.admin_home, name="admin"),
+    path("me/", views.MyTimetableView.as_view(), name="my-timetable"),
+    path("panels/timetables/", views.TimetablesPanel.as_view(), name="panel-timetables"),
+    path("timetables/new/", views.TimetableCreateView.as_view(), name="timetable-create"),
+    path("timetables/<uuid:pk>/", views.TimetableDetailView.as_view(), name="timetable-detail"),
+    path(
+        "timetables/<uuid:pk>/archive/",
+        views.TimetableArchiveView.as_view(),
+        name="timetable-archive",
+    ),
+    path(
+        "timetables/<uuid:pk>/versions/new/",
+        views.VersionCreateView.as_view(),
+        name="version-create",
+    ),
+    path("versions/<uuid:pk>/", views.VersionDetailView.as_view(), name="version-detail"),
+    path(
+        "versions/<uuid:pk>/requirements/new/",
+        views.RequirementAddView.as_view(),
+        name="requirement-add",
+    ),
+    path(
+        "requirements/<uuid:pk>/edit/",
+        views.RequirementEditView.as_view(),
+        name="requirement-edit",
+    ),
+    path(
+        "requirements/<uuid:pk>/delete/",
+        views.RequirementDeleteView.as_view(),
+        name="requirement-delete",
+    ),
+    path("versions/<uuid:pk>/solve/", views.VersionSolveView.as_view(), name="version-solve"),
+    path("versions/<uuid:pk>/status/", views.VersionStatusView.as_view(), name="version-status"),
+    path("versions/<uuid:pk>/reopen/", views.VersionReopenView.as_view(), name="version-reopen"),
+    path("versions/<uuid:pk>/publish/", views.VersionPublishView.as_view(), name="version-publish"),
+    path("versions/<uuid:pk>/compare/", views.VersionCompareView.as_view(), name="version-compare"),
+    path(
+        "versions/<uuid:pk>/sections/<uuid:resource>/",
+        views.GridView.as_view(kind=Resource.Kind.SECTION),
+        name="version-grid-section",
+    ),
+    path(
+        "versions/<uuid:pk>/teachers/<uuid:resource>/",
+        views.GridView.as_view(kind=Resource.Kind.TEACHER),
+        name="version-grid-teacher",
+    ),
+    path(
+        "versions/<uuid:pk>/rooms/<uuid:resource>/",
+        views.GridView.as_view(kind=Resource.Kind.ROOM),
+        name="version-grid-room",
+    ),
+    path("panels/resources/", views.ResourcesPanel.as_view(), name="panel-resources"),
+    path("resources/new/", views.ResourceCreateView.as_view(), name="resource-create"),
+    path("resources/<uuid:pk>/edit/", views.ResourceEditView.as_view(), name="resource-edit"),
+    path("resources/<uuid:pk>/toggle/", views.ResourceToggleView.as_view(), name="resource-toggle"),
+    path("panels/subjects/", views.SubjectsPanel.as_view(), name="panel-subjects"),
+    path("subjects/new/", views.SubjectCreateView.as_view(), name="subject-create"),
+    path("subjects/<uuid:pk>/edit/", views.SubjectEditView.as_view(), name="subject-edit"),
+    path("subjects/<uuid:pk>/toggle/", views.SubjectToggleView.as_view(), name="subject-toggle"),
+    path("panels/data/", views.DataPanel.as_view(), name="panel-data"),
+    path("data/import/", views.DataImportView.as_view(), name="data-import"),
+    path("data/export/", views.DataExportView.as_view(), name="data-export"),
+    path("panels/users/", views.UsersPanel.as_view(), name="panel-users"),
+    path("users/invite/", views.UserInviteView.as_view(), name="user-invite"),
+    path("users/<uuid:pk>/toggle/", views.UserToggleView.as_view(), name="user-toggle"),
+    path("users/<uuid:pk>/resend/", views.UserResendInviteView.as_view(), name="user-resend"),
+    path("users/<uuid:pk>/reset-mfa/", views.UserResetMfaView.as_view(), name="user-reset-mfa"),
+    path("panels/roles/", views.RolesPanel.as_view(), name="panel-roles"),
+    path("roles/new/", views.RoleCreateView.as_view(), name="role-create"),
+    path("roles/<uuid:pk>/edit/", views.RoleEditView.as_view(), name="role-edit"),
+    path("roles/<uuid:pk>/delete/", views.RoleDeleteView.as_view(), name="role-delete"),
+]

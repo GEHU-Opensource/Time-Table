@@ -1,0 +1,10 @@
+extends layout.pug
+
+block content
+  section.card
+    h1 My timetable
+    if teacher
+      p.muted #{teacher.code} #{teacher.name}
+      include timetable/_grid_table.pug
+    else
+      p No teaching schedule is linked to your account yet. Ask your department to link your teacher record.

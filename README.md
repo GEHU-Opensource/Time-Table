@@ -1,192 +1,86 @@
-# Timetable Management System
+# Time-Table
 
-A comprehensive, scalable timetable management system with multi-tenant support, genetic algorithm optimization, and modern React frontend.
+Multi-tenant university timetable system: Django 5.2, Pug templates, htmx, PostgreSQL and the
+OR-Tools CP-SAT solver. Each university is a tenant on its own subdomain; every tenant table is
+protected by PostgreSQL row-level security. A clash cannot leave the solver, cannot be written
+to the database, and is re-checked by an independent validator before anything is published.
 
-## Features
+## Run locally
 
-- **Multi-Tenant Architecture**: Master admin can manage multiple colleges, each with their own dashboard
-- **Genetic Algorithm**: Optimized timetable generation with constraint handling
-- **Role-Based Access Control**: Master Admin, College Admin, HOD, Faculty, and Student roles
-- **Modern Frontend**: React with TypeScript, Tailwind CSS, and responsive design
-- **RESTful API**: Django REST Framework with JWT authentication
-- **Scalable Design**: PostgreSQL database, Celery for async tasks, Redis for caching
+Requires Python 3.13 and PostgreSQL 14 or newer.
 
-## Project Structure
-
-```
-Time-Table/
-├── backend/                 # Django backend
-│   ├── algorithm/          # Genetic algorithm implementation
-│   ├── api/                # Authentication endpoints
-│   ├── core/               # Core models, views, serializers
-│   └── timetable_backend/  # Django settings
-├── frontend/               # React frontend
-│   └── src/
-│       ├── pages/         # Page components
-│       ├── components/    # Reusable components
-│       ├── stores/        # State management
-│       └── lib/           # Utilities
-└── README.md
+```sh
+createdb timetable_dev
+cp .env.example .env
+python3.13 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py create_tenant --name "GEHU" --slug gehu
+.venv/bin/python manage.py seed_tenant_admin --tenant gehu --email admin@example.com --name "Admin"
+.venv/bin/python manage.py runserver
 ```
 
-## Setup Instructions
+Open http://gehu.localhost:8000/ and use the set-password link printed by `seed_tenant_admin`.
+Run the background worker with `.venv/bin/python manage.py procrastinate worker`.
 
-### Backend Setup
+## Tests
 
-1. **Navigate to backend directory:**
-   ```bash
-   cd backend
-   ```
+```sh
+.venv/bin/pytest
+```
 
-2. **Create virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+pytest-django creates a test database on the local PostgreSQL; set `TEST_DB_NAME` to run
+several suites side by side. The suite includes `tests/test_no_comments.py`, which runs the
+repository lint scripts, so `pytest` alone enforces the rules below. The full CI sequence is in
+`.github/workflows/ci.yml`:
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+```sh
+.venv/bin/ruff format --check . && .venv/bin/ruff check .
+.venv/bin/python scripts/check_no_comments.py
+.venv/bin/python scripts/check_templates.py
+.venv/bin/lint-imports
+.venv/bin/python manage.py makemigrations --check --dry-run
+.venv/bin/pytest -q
+```
 
-4. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your database credentials
-   ```
+## Deploy
 
-5. **Set up database:**
-   ```bash
-   python manage.py makemigrations core
-   python manage.py migrate
-   ```
+`deploy/compose.yaml` runs PostgreSQL 16, a one-shot migration job, gunicorn, the
+procrastinate worker and Caddy with wildcard TLS via DNS-01. Only Caddy publishes ports.
+Step-by-step instructions, tenant creation, key rotation, backups and restores are in
+[docs/OPERATIONS.md](docs/OPERATIONS.md).
 
-6. **Create superuser (Master Admin):**
-   ```bash
-   python manage.py createsuperuser
-   ```
+## Repository layout
 
-7. **Run server:**
-   ```bash
-   python manage.py runserver
-   ```
+```
+config/      settings from the environment, URL root, WSGI
+core/        tenancy, users, roles, permissions, audit, auth, health, management commands
+timetable/   resources, subjects, timetables, versions, requirements, assignments, services
+solver/      pure-Python CP-SAT model, validator and dataclass contracts (no Django)
+templates/   Pug templates (layout, admin shell, panels, errors)
+static/      stylesheet and vendored htmx
+deploy/      Dockerfiles, Compose stack, Caddyfile, entrypoint, database roles
+scripts/     repository lint scripts run by CI and pytest
+tests/       pytest suite
+docs/        architecture, constraint table, decisions, security, privacy, operations
+```
 
-### Frontend Setup
+## Documentation
 
-1. **Navigate to frontend directory:**
-   ```bash
-   cd frontend
-   ```
+| Document | Contents |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Modules, request flow, solve and publish flows, versioning, the data model table by table |
+| [docs/CONSTRAINTS.md](docs/CONSTRAINTS.md) | Every scheduling rule, hard or soft, and where each is enforced |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Why CP-SAT, one repo, Pug, twelve tables, occupancy rows, RLS, procrastinate, no platform admin, no comments |
+| [docs/SECURITY.md](docs/SECURITY.md) | The layered security model and its follow-ups |
+| [docs/PRIVACY.md](docs/PRIVACY.md) | Data held, retention, DPDP Act 2023 notes |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | First deploy, tenants, rotation, backups, restores, worker, logs |
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+## The no-comments rule
 
-3. **Run development server:**
-   ```bash
-   npm run dev
-   ```
-
-## Usage
-
-### Master Admin
-
-1. Login with master admin credentials
-2. Navigate to Colleges section to add/manage colleges
-3. Each college gets a unique subdomain and dashboard
-4. Manage users across all colleges
-
-### College Admin
-
-1. Login with college admin credentials
-2. Set up departments, teachers, subjects, sections, and classrooms
-3. Generate timetables using the genetic algorithm
-4. View and manage generated timetables
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register/` - Register new user
-- `POST /api/auth/login/` - Login
-- `GET /api/auth/me/` - Get current user
-- `POST /api/auth/logout/` - Logout
-
-### Colleges (Master Admin only)
-- `GET /api/colleges/` - List colleges
-- `POST /api/colleges/` - Create college
-- `GET /api/colleges/{id}/` - Get college details
-- `PATCH /api/colleges/{id}/` - Update college
-- `DELETE /api/colleges/{id}/` - Delete college
-
-### Timetables
-- `GET /api/timetables/` - List timetables
-- `POST /api/timetables/` - Create timetable
-- `GET /api/timetables/{id}/` - Get timetable details
-- `POST /api/generate-timetable/generate/` - Generate timetable using GA
-
-## Algorithm
-
-The genetic algorithm optimizes timetable generation by:
-
-1. **Initialization**: Creates random timetable populations
-2. **Fitness Evaluation**: Scores timetables based on constraint violations
-3. **Selection**: Selects best timetables for reproduction
-4. **Crossover**: Combines features from parent timetables
-5. **Mutation**: Introduces random changes for diversity
-6. **Iteration**: Repeats for specified generations
-
-### Constraints
-
-- **Hard Constraints**: Must be satisfied
-  - No teacher double-booking
-  - No classroom double-booking
-  - Room capacity limits
-  - Teacher availability
-
-- **Soft Constraints**: Preferences
-  - Teacher time preferences
-  - Balanced workload distribution
-  - Minimize gaps between classes
-
-## Sample Data
-
-To add sample data for testing:
-
-1. Use Django admin or API to create:
-   - Colleges
-   - Departments
-   - Teachers
-   - Subjects
-   - Sections
-   - Classrooms
-   - Subject-Teacher mappings
-
-2. Or use the management command (to be added):
-   ```bash
-   python manage.py load_sample_data
-   ```
-
-## Deployment
-
-### Backend
-- Use Gunicorn or uWSGI for production
-- Set up PostgreSQL database
-- Configure Redis for Celery
-- Set environment variables securely
-
-### Frontend
-- Build for production: `npm run build`
-- Serve static files with Nginx or similar
-- Configure API proxy
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-MIT License
+Code in this repository contains no comments and no docstrings: Python, Pug, SQL, shell,
+YAML, Dockerfiles and the Caddyfile. A `#` line other than a shebang (or a `noqa` pragma)
+fails CI through `scripts/check_no_comments.py`. Explanations live in three places instead:
+names (a function is called what it does), tests (`tests/` shows the behaviour), and `docs/`
+(the reasoning). Generated migrations are excluded from the check. Templates are additionally
+checked by `scripts/check_templates.py`, which forbids inline scripts and styles, `hx-on`,
+`js:` and every unescaped-output construct.

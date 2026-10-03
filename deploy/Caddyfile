@@ -1,0 +1,53 @@
+{
+	email {$ACME_EMAIL}
+}
+
+(proxy_to_web) {
+	reverse_proxy web:8000 {
+		header_up X-Request-ID {http.request.uuid}
+		header_up X-Forwarded-Host {host}
+	}
+}
+
+{$BASE_DOMAIN}, *.{$BASE_DOMAIN} {
+	tls {
+		dns {$CADDY_DNS_PROVIDER} {$CADDY_DNS_TOKEN}
+	}
+
+	request_body {
+		max_size 6MB
+	}
+
+	header -Server
+	header -X-Powered-By
+
+	encode zstd gzip
+
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>uri regexp `\?.*$` ""
+				request>headers>Cookie delete
+				request>headers>Authorization delete
+				request>headers>Set-Cookie delete
+				resp_headers>Set-Cookie delete
+			}
+		}
+	}
+
+	@health path /healthz/
+	handle @health {
+		import proxy_to_web
+	}
+
+	@bare host {$BASE_DOMAIN}
+	handle @bare {
+		respond "Time-Table lives on tenant subdomains." 404
+	}
+
+	handle {
+		import proxy_to_web
+	}
+}

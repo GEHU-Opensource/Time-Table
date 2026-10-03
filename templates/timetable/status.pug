@@ -1,0 +1,18 @@
+if version.status == 'solving'
+  div#version-status(hx-get="{% url 'version-status' pk=version.pk %}" hx-trigger="every 3s" hx-swap="outerHTML")
+    span.badge.solving solving
+    |  
+    span.muted Solver running, this refreshes every few seconds.
+else
+  div#version-status(hx-get="{% url 'version-status' pk=version.pk %}" hx-swap="outerHTML")
+    span(class="badge {{ version.status }}")= version.status
+    if version.status == 'failed'
+      if version.solver_stats.reasons
+        ul.errorlist
+          each reason in version.solver_stats.reasons
+            li= reason
+      if version.solver_stats.unplaced
+        p.muted Unplaced sessions: #{version.solver_stats.unplaced|length}
+        ul.errorlist
+          each item in version.solver_stats.unplaced
+            li= item

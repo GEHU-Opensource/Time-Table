@@ -1,0 +1,8 @@
+-r requirements.txt
+pytest>=8
+pytest-django>=4.11
+pytest-env>=1.1
+hypothesis>=6
+ruff>=0.13
+import-linter>=2
+pip-audit>=2.9

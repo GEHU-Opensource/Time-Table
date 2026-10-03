@@ -1,0 +1,32 @@
+section.card
+  h1 Import workbook
+  form.stack(method="post" action="{% url 'data-import' %}" hx-post="{% url 'data-import' %}" hx-target="#panel" hx-encoding="multipart/form-data" enctype="multipart/form-data")
+    - csrf_token
+    | {{ import_form.as_div }}
+    div
+      button(type="submit") Upload
+  if plan
+    if applied
+      h2 Import applied
+    elif plan.errors
+      h2 Workbook rejected
+    else
+      h2 Dry run
+    if plan.errors
+      ul.errorlist
+        each problem in plan.errors
+          li= problem
+    if summary
+      table
+        tbody
+          each key, value in summary.items
+            tr
+              th= key
+              td= value
+if export_form
+  section.card
+    h1 Export version
+    form.row(method="post" action="{% url 'data-export' %}")
+      - csrf_token
+      | {{ export_form.as_div }}
+      button(type="submit") Download .xlsx

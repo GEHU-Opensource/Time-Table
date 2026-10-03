@@ -1,0 +1,8 @@
+extends layout.pug
+
+block content
+  section.card
+    h1 This invitation is not valid
+    p The link has expired, has already been used, or was copied incompletely. Ask an administrator to send a new invitation.
+    p
+      a(href="{% url 'login' %}") Go to sign in

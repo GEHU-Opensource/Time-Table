@@ -1,0 +1,54 @@
+section.card
+  p
+    a(href="{% url 'panel-timetables' %}" hx-get="{% url 'panel-timetables' %}" hx-target="#panel" hx-push-url="true") All timetables
+  h1= timetable.name
+  p.muted
+    | #{timetable.department|default:"Shared"} / #{timetable.start_date} to #{timetable.end_date}
+    if timetable.archived
+      |  
+      span.badge archived
+  if notice
+    p.flash.success= notice
+  if manageable
+    form.inline(method="post" action="{% url 'timetable-archive' pk=timetable.pk %}" hx-post="{% url 'timetable-archive' pk=timetable.pk %}" hx-target="#panel")
+      - csrf_token
+      if timetable.archived
+        button.secondary(type="submit") Unarchive
+      else
+        button.secondary(type="submit") Archive
+section.card
+  h2 Versions
+  if versions
+    table
+      thead
+        tr
+          th Version
+          th Status
+          th Effective from
+          th Parent
+          th Created
+          th Actions
+      tbody
+        each version in versions
+          tr
+            td v#{version.number}
+            td
+              span(class="badge {{ version.status }}")= version.status
+            td= version.effective_from|default_if_none:"-"
+            td
+              if version.parent
+                | v#{version.parent.number}
+              else
+                span.muted -
+            td= version.created_at|date:"Y-m-d H:i"
+            td
+              a(href="{% url 'version-detail' pk=version.pk %}" hx-get="{% url 'version-detail' pk=version.pk %}" hx-target="#panel" hx-push-url="true") Open
+  else
+    p.muted No versions yet.
+if draft_form
+  section.card
+    h2 New draft
+    form.row(method="post" action="{% url 'version-create' pk=timetable.pk %}" hx-post="{% url 'version-create' pk=timetable.pk %}" hx-target="#panel")
+      - csrf_token
+      | {{ draft_form.as_div }}
+      button(type="submit") Create draft

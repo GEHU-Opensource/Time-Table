@@ -1,0 +1,33 @@
+extends layout.pug
+
+block content
+  section.card
+    h1 Two-factor authentication
+    if enabled
+      p.muted An authenticator app is already linked to your account. Scanning this code links a new one.
+    elif required
+      p Your role requires a second factor. Scan the code with an authenticator app, then enter the code it shows.
+    else
+      p Scan the code with an authenticator app, then enter the code it shows.
+    div.split
+      div
+        img(src="{{ qr }}" alt="QR code for your authenticator app" width="200" height="200")
+      div
+        p.muted Cannot scan? Enter this key by hand:
+        p
+          code= secret
+    form.stack(method="post" action="{% url 'mfa-setup' %}")
+      - csrf_token
+      if form.non_field_errors
+        ul.errorlist
+          each e in form.non_field_errors
+            li= e
+      label
+        | {{ form.token.label }}
+        | {{ form.token }}
+        if form.token.errors
+          ul.errorlist
+            each e in form.token.errors
+              li= e
+      div
+        button(type="submit") Confirm

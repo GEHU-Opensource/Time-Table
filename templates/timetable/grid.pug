@@ -1,0 +1,6 @@
+section.card
+  p
+    a(href="{% url 'version-detail' pk=version.pk %}" hx-get="{% url 'version-detail' pk=version.pk %}" hx-target="#panel" hx-push-url="true") Back to v#{version.number}
+  h1 #{resource.kind|capfirst} #{resource.code}
+  p.muted #{timetable.name} v#{version.number}
+  include timetable/_grid_table.pug

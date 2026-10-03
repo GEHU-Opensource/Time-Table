@@ -1,0 +1,52 @@
+section.card
+  h1 Users
+  if notice
+    p.flash.success= notice
+  if error
+    p.flash.error= error
+  table
+    thead
+      tr
+        th Email
+        th Name
+        th Role
+        th Department
+        th Active
+        th Last login
+        th Actions
+    tbody
+      each member in users
+        tr
+          td= member.email
+          td= member.name
+          td= member.role|default_if_none:"-"
+          td= member.department|default_if_none:"-"
+          td
+            if member.is_active
+              span.badge.published active
+            else
+              span.badge inactive
+          td= member.last_login|date:"Y-m-d H:i"|default:"never"
+          td
+            form.inline(method="post" action="{% url 'user-toggle' pk=member.pk %}" hx-post="{% url 'user-toggle' pk=member.pk %}" hx-target="#panel")
+              - csrf_token
+              if member.is_active
+                button.link(type="submit") Deactivate
+              else
+                button.link(type="submit") Reactivate
+            |  
+            unless member.has_usable_password
+              form.inline(method="post" action="{% url 'user-resend' pk=member.pk %}" hx-post="{% url 'user-resend' pk=member.pk %}" hx-target="#panel")
+                - csrf_token
+                button.link(type="submit") Resend invite
+              |  
+            form.inline(method="post" action="{% url 'user-reset-mfa' pk=member.pk %}" hx-post="{% url 'user-reset-mfa' pk=member.pk %}" hx-target="#panel")
+              - csrf_token
+              button.link(type="submit") Reset MFA
+section.card
+  h2 Invite a user
+  form.stack(method="post" action="{% url 'user-invite' %}" hx-post="{% url 'user-invite' %}" hx-target="#panel")
+    - csrf_token
+    | {{ form.as_div }}
+    div
+      button(type="submit") Send invitation

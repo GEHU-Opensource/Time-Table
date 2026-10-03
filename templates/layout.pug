@@ -1,0 +1,24 @@
+- load static
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title= title|default:"Time-Table"
+    link(rel="stylesheet" href="{% static 'app.css' %}")
+    script(src="{% static 'vendor/htmx.min.js' %}" defer)
+    meta(name="htmx-config" content='{"selfRequestsOnly":true,"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false,"historyCacheSize":0}')
+  body(hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}')
+    header.top
+      a.brand(href="{% url 'admin' %}") Time-Table
+      if tenant
+        span.tenant= tenant.name
+      if user.is_authenticated
+        span.who= user.name
+        form.inline(method="post" action="{% url 'logout' %}")
+          - csrf_token
+          button.link(type="submit") Sign out
+    main
+      each m in messages
+        p.flash(class="{{ m.tags }}")= m
+      block content

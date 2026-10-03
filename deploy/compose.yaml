@@ -1,0 +1,157 @@
+name: timetable
+
+x-app-image: &app-image
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile
+  image: timetable-app:local
+
+x-app-hardening: &app-hardening
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: 20m
+      max-file: "5"
+
+x-app-env: &app-env
+  ENV: prod
+  SECURE: "true"
+  BASE_DOMAIN: ${BASE_DOMAIN}
+  DB_SSLMODE: ${DB_SSLMODE:-disable}
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: --data-checksums
+      OWNER_DB_PASSWORD: ${OWNER_DB_PASSWORD:?OWNER_DB_PASSWORD is required}
+      WEB_DB_PASSWORD: ${WEB_DB_PASSWORD:?WEB_DB_PASSWORD is required}
+      WORKER_DB_PASSWORD: ${WORKER_DB_PASSWORD:?WORKER_DB_PASSWORD is required}
+      OPS_DB_PASSWORD: ${OPS_DB_PASSWORD:?OPS_DB_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/10-init-db.sh:ro
+      - ./roles.sql:/docker-entrypoint-initdb.d/roles.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d timetable"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    networks:
+      - backend
+    restart: unless-stopped
+    shm_size: 256m
+
+  migrate:
+    <<: [*app-image, *app-hardening]
+    entrypoint: ["/app/deploy/entrypoint.sh", "migrate"]
+    command: []
+    restart: "no"
+    env_file:
+      - ../.env
+    environment:
+      <<: *app-env
+      DATABASE_URL: postgres://web:${WEB_DB_PASSWORD}@postgres:5432/timetable
+      DATABASE_URL_OWNER: postgres://tt_owner:${OWNER_DB_PASSWORD}@postgres:5432/timetable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  web:
+    <<: [*app-image, *app-hardening]
+    env_file:
+      - ../.env
+    environment:
+      <<: *app-env
+      DATABASE_URL: postgres://web:${WEB_DB_PASSWORD}@postgres:5432/timetable
+      WEB_WORKERS: ${WEB_WORKERS:-3}
+      FORWARDED_ALLOW_IPS: "*"
+    mem_limit: 1g
+    pids_limit: 256
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+      - edge
+
+  worker:
+    <<: [*app-image, *app-hardening]
+    entrypoint: ["/app/deploy/entrypoint.sh", "worker"]
+    command: ["python", "manage.py", "procrastinate", "worker", "--concurrency", "2"]
+    env_file:
+      - ../.env
+    environment:
+      <<: *app-env
+      DATABASE_URL: postgres://worker:${WORKER_DB_PASSWORD}@postgres:5432/timetable
+    mem_limit: 3g
+    pids_limit: 512
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+      - edge
+
+  caddy:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.caddy
+      args:
+        CADDY_DNS_PLUGIN: ${CADDY_DNS_PLUGIN:-cloudflare}
+    image: timetable-caddy:local
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+      CADDY_DNS_PROVIDER: ${CADDY_DNS_PROVIDER:-cloudflare}
+      CADDY_DNS_TOKEN: ${CADDY_DNS_TOKEN:?CADDY_DNS_TOKEN is required}
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - web
+    networks:
+      - edge
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 20m
+        max-file: "5"
+
+networks:
+  backend:
+    internal: true
+  edge: {}
+
+volumes:
+  postgres-data: {}
+  caddy-data: {}
+  caddy-config: {}

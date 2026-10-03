@@ -1,0 +1,11 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    title Invitation to {{ tenant.name }}
+  body
+    p Hello {{ name }},
+    p You have been invited to {{ tenant.name }} on Time-Table. Open this link to set your password:
+    p
+      a(href="{{ link }}") {{ link }}
+    p The link expires in {{ hours }} hours. If you did not expect this invitation, you can ignore this email.

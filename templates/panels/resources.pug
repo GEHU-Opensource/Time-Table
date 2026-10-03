@@ -1,0 +1,58 @@
+section.card
+  h1 Resources
+  nav.tabs
+    each value, label in kinds
+      a(href="{% url 'panel-resources' %}?kind={{ value }}" hx-get="{% url 'panel-resources' %}?kind={{ value }}" hx-target="#panel" hx-push-url="true" class="{% if value == kind %}active{% endif %}")= label
+  if notice
+    p.flash.success= notice
+  if resources
+    table
+      thead
+        tr
+          th Code
+          th Name
+          th Department
+          th Capacity
+          th Tags
+          th Max load
+          th Parent
+          th Active
+          if 'resource.manage' in perms
+            th Actions
+      tbody
+        each resource in resources
+          tr
+            td= resource.code
+            td= resource.name
+            td= resource.department|default:"Shared"
+            td= resource.capacity
+            td
+              each tag in resource.tags
+                span.badge= tag
+                |  
+            td= resource.max_load|default_if_none:"-"
+            td= resource.parent|default_if_none:"-"
+            td
+              if resource.active
+                span.badge.published active
+              else
+                span.badge inactive
+            if 'resource.manage' in perms
+              td
+                a(href="{% url 'resource-edit' pk=resource.pk %}" hx-get="{% url 'resource-edit' pk=resource.pk %}" hx-target="#panel") Edit
+                |  
+                form.inline(method="post" action="{% url 'resource-toggle' pk=resource.pk %}" hx-post="{% url 'resource-toggle' pk=resource.pk %}" hx-target="#panel")
+                  - csrf_token
+                  if resource.active
+                    button.link(type="submit") Deactivate
+                  else
+                    button.link(type="submit") Reactivate
+  else
+    p.muted Nothing of this kind yet.
+if form
+  section.card
+    if editing
+      h2 Edit #{editing.code}
+    else
+      h2 New resource
+    include panels/_resource_form.pug

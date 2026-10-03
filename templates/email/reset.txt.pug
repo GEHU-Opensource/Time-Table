@@ -1,0 +1,6 @@
+- autoescape off
+  | Someone asked to reset the password for your Time-Table account at {{ domain }}.
+  |
+  | {{ protocol }}://{{ domain }}{% url 'password-reset-confirm' uidb64=uid token=token %}
+  |
+  | The link is valid for one hour. If you did not ask for this, you can ignore this email.

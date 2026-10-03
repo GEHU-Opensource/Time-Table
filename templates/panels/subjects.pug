@@ -1,0 +1,52 @@
+section.card
+  h1 Subjects
+  if notice
+    p.flash.success= notice
+  if subjects
+    table
+      thead
+        tr
+          th Code
+          th Name
+          th Length
+          th Department
+          th Active
+          th Actions
+      tbody
+        each subject in subjects
+          tr
+            td= subject.code
+            td= subject.name
+            td= subject.length
+            td= subject.department|default:"Shared"
+            td
+              if subject.active
+                span.badge.published active
+              else
+                span.badge inactive
+            td
+              a(href="{% url 'subject-edit' pk=subject.pk %}" hx-get="{% url 'subject-edit' pk=subject.pk %}" hx-target="#panel") Edit
+              |  
+              form.inline(method="post" action="{% url 'subject-toggle' pk=subject.pk %}" hx-post="{% url 'subject-toggle' pk=subject.pk %}" hx-target="#panel")
+                - csrf_token
+                if subject.active
+                  button.link(type="submit") Deactivate
+                else
+                  button.link(type="submit") Reactivate
+  else
+    p.muted No subjects yet.
+section.card
+  if editing
+    h2 Edit #{editing.code}
+  else
+    h2 New subject
+  form.stack(method="post" action="{% if editing %}{% url 'subject-edit' pk=editing.pk %}{% else %}{% url 'subject-create' %}{% endif %}" hx-post="{% if editing %}{% url 'subject-edit' pk=editing.pk %}{% else %}{% url 'subject-create' %}{% endif %}" hx-target="#panel")
+    - csrf_token
+    | {{ form.as_div }}
+    div
+      if editing
+        button(type="submit") Save subject
+        |  
+        a.button.secondary(href="{% url 'panel-subjects' %}" hx-get="{% url 'panel-subjects' %}" hx-target="#panel") Cancel
+      else
+        button(type="submit") Create subject

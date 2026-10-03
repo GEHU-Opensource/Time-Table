@@ -1,0 +1,29 @@
+section.card
+  p
+    a(href="{% url 'version-detail' pk=version.pk %}" hx-get="{% url 'version-detail' pk=version.pk %}" hx-target="#panel" hx-push-url="true") Back to v#{version.number}
+  h1 Compare v#{version.number} with v#{other.number}
+  if resource
+    p.muted Showing #{resource.kind} #{resource.code}
+  if resources
+    form.row(method="get" action="{% url 'version-compare' pk=version.pk %}" hx-get="{% url 'version-compare' pk=version.pk %}" hx-target="#panel" hx-push-url="true")
+      input(type="hidden" name="other" value="{{ other.pk }}")
+      label
+        | Resource
+        select(name="resource")
+          each choice in resources
+            option(value="{{ choice.pk }}" selected=choice.pk == resource_pk) #{choice.kind} #{choice.code}
+      button.secondary(type="submit") Show
+  if comparison
+    table
+      tbody
+        each item in comparison
+          tr
+            th= item.key
+            td= item.value
+  div.split
+    div
+      h2 v#{version.number}
+      | {% include "timetable/_grid_table.pug" with grid=left %}
+    div
+      h2 v#{other.number}
+      | {% include "timetable/_grid_table.pug" with grid=right %}

@@ -1,0 +1,90 @@
+section.card
+  p
+    a(href="{% url 'timetable-detail' pk=timetable.pk %}" hx-get="{% url 'timetable-detail' pk=timetable.pk %}" hx-target="#panel" hx-push-url="true") #{timetable.name}
+  h1 #{timetable.name} v#{version.number}
+  include timetable/status.pug
+  if version.reason
+    p.muted= version.reason
+  if notice
+    p.flash.success= notice
+  if error
+    p.flash.error= error
+  if violations
+    div.flash.error
+      strong Publishing blocked
+      ul.errorlist
+        each violation in violations
+          li= violation
+  div.row
+    if can_generate
+      form.inline(method="post" action="{% url 'version-solve' pk=version.pk %}" hx-post="{% url 'version-solve' pk=version.pk %}" hx-target="#panel")
+        - csrf_token
+        button(type="submit") Generate
+    if can_reopen
+      form.inline(method="post" action="{% url 'version-reopen' pk=version.pk %}" hx-post="{% url 'version-reopen' pk=version.pk %}" hx-target="#panel")
+        - csrf_token
+        button.secondary(type="submit") Reopen
+  if can_publish
+    form.row(method="post" action="{% url 'version-publish' pk=version.pk %}" hx-post="{% url 'version-publish' pk=version.pk %}" hx-target="#panel")
+      - csrf_token
+      | {{ publish_form.as_div }}
+      button(type="submit") Publish
+  if others
+    form.row(method="get" action="{% url 'version-compare' pk=version.pk %}" hx-get="{% url 'version-compare' pk=version.pk %}" hx-target="#panel" hx-push-url="true")
+      label
+        | Compare with
+        select(name="other")
+          each other in others
+            option(value="{{ other.pk }}") v#{other.number} (#{other.status})
+      button.secondary(type="submit") Compare
+section.card
+  h2 Requirements
+  if requirements
+    table
+      thead
+        tr
+          th Subject
+          th Teachers
+          th Attendees
+          th Sessions
+          th Length
+          th Room tag
+          th Rooms
+          th Fixed room
+          th Fixed slots
+          if editable
+            th Actions
+      tbody
+        each row in requirements
+          tr
+            td= row.requirement.subject.code
+            td= row.teachers
+            td= row.attendees
+            td= row.requirement.sessions
+            td= row.requirement.length
+            td= row.requirement.room_tag|default:"-"
+            td= row.requirement.rooms_needed
+            td= row.fixed_room|default:"-"
+            td= row.fixed_slots|default:"-"
+            if editable
+              td
+                a(href="{% url 'requirement-edit' pk=row.requirement.pk %}" hx-get="{% url 'requirement-edit' pk=row.requirement.pk %}" hx-target="#panel") Edit
+                |  
+                form.inline(method="post" action="{% url 'requirement-delete' pk=row.requirement.pk %}" hx-post="{% url 'requirement-delete' pk=row.requirement.pk %}" hx-target="#panel")
+                  - csrf_token
+                  button.link(type="submit") Delete
+  else
+    p.muted No requirements yet.
+if requirement_form
+  section.card
+    if editing
+      h2 Edit requirement
+    else
+      h2 Add requirement
+    include timetable/requirement_form.pug
+if resource_links
+  section.card
+    h2 Grids
+    each link in resource_links
+      a(href="{{ link.url }}" hx-get="{{ link.url }}" hx-target="#panel" hx-push-url="true") #{link.resource.kind} #{link.resource.code}
+      |  

@@ -1,0 +1,37 @@
+section.card
+  h1 Timetables
+  if notice
+    p.flash.success= notice
+  if rows
+    table
+      thead
+        tr
+          th Name
+          th Department
+          th Dates
+          th Latest version
+          th Status
+      tbody
+        each row in rows
+          tr
+            td
+              a(href="{% url 'timetable-detail' pk=row.timetable.pk %}" hx-get="{% url 'timetable-detail' pk=row.timetable.pk %}" hx-target="#panel" hx-push-url="true")= row.timetable.name
+              if row.timetable.archived
+                |  
+                span.badge archived
+            td= row.timetable.department|default:"Shared"
+            td #{row.timetable.start_date} to #{row.timetable.end_date}
+            td
+              if row.latest
+                | v#{row.latest.number}
+              else
+                span.muted none
+            td
+              if row.latest
+                span(class="badge {{ row.latest.status }}")= row.latest.status
+  else
+    p.muted No timetables yet.
+if form
+  section.card
+    h2 New timetable
+    include panels/_timetable_form.pug

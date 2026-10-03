@@ -1,0 +1,44 @@
+section.card
+  h1 Roles
+  if notice
+    p.flash.success= notice
+  if error
+    p.flash.error= error
+  table
+    thead
+      tr
+        th Role
+        th Permissions
+        th Users
+        th Actions
+    tbody
+      each role in roles
+        tr
+          td= role.name
+          td
+            each code in role.permissions
+              span.badge= code
+              |  
+          td= role.user_count
+          td
+            a(href="{% url 'role-edit' pk=role.pk %}" hx-get="{% url 'role-edit' pk=role.pk %}" hx-target="#panel") Edit
+            |  
+            if role.user_count == 0
+              form.inline(method="post" action="{% url 'role-delete' pk=role.pk %}" hx-post="{% url 'role-delete' pk=role.pk %}" hx-target="#panel")
+                - csrf_token
+                button.link(type="submit") Delete
+section.card
+  if editing
+    h2 Edit #{editing.name}
+  else
+    h2 New role
+  form.stack(method="post" action="{% if editing %}{% url 'role-edit' pk=editing.pk %}{% else %}{% url 'role-create' %}{% endif %}" hx-post="{% if editing %}{% url 'role-edit' pk=editing.pk %}{% else %}{% url 'role-create' %}{% endif %}" hx-target="#panel")
+    - csrf_token
+    | {{ form.as_div }}
+    div
+      if editing
+        button(type="submit") Save role
+        |  
+        a.button.secondary(href="{% url 'panel-roles' %}" hx-get="{% url 'panel-roles' %}" hx-target="#panel") Cancel
+      else
+        button(type="submit") Create role

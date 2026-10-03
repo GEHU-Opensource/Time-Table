@@ -1,0 +1,1428 @@
+{
+ "grid": {
+  "days": [
+   "Mon",
+   "Tue",
+   "Wed",
+   "Thu",
+   "Fri"
+  ],
+  "periods": [
+   [
+    "09:00",
+    "09:55"
+   ],
+   [
+    "09:55",
+    "10:50"
+   ],
+   [
+    "11:00",
+    "11:55"
+   ],
+   [
+    "11:55",
+    "12:50"
+   ],
+   [
+    "13:20",
+    "14:15"
+   ],
+   [
+    "14:15",
+    "15:10"
+   ],
+   [
+    "15:10",
+    "16:05"
+   ],
+   [
+    "16:05",
+    "17:00"
+   ]
+  ],
+  "breaks_after": [
+   1,
+   3
+  ]
+ },
+ "resources": [
+  {
+   "id": "T01",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     0,
+     7
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     1,
+     5
+    ],
+    [
+     1,
+     6
+    ],
+    [
+     1,
+     7
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     2,
+     5
+    ],
+    [
+     2,
+     6
+    ],
+    [
+     2,
+     7
+    ],
+    [
+     3,
+     5
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     4,
+     3
+    ],
+    [
+     4,
+     5
+    ],
+    [
+     4,
+     7
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T02",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     0,
+     5
+    ],
+    [
+     0,
+     6
+    ],
+    [
+     0,
+     7
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     5
+    ],
+    [
+     1,
+     6
+    ],
+    [
+     1,
+     7
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     2,
+     5
+    ],
+    [
+     2,
+     6
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     3,
+     5
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     4,
+     1
+    ],
+    [
+     4,
+     5
+    ],
+    [
+     4,
+     6
+    ],
+    [
+     4,
+     7
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T03",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     5
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     4,
+     1
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T04",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     5
+    ],
+    [
+     0,
+     6
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     3,
+     5
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     4,
+     1
+    ],
+    [
+     4,
+     3
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T05",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     4,
+     3
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T06",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     0,
+     5
+    ],
+    [
+     0,
+     7
+    ],
+    [
+     1,
+     7
+    ],
+    [
+     2,
+     7
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     4,
+     1
+    ],
+    [
+     4,
+     3
+    ],
+    [
+     4,
+     7
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T07",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     5
+    ],
+    [
+     0,
+     6
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     1,
+     5
+    ],
+    [
+     1,
+     7
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     4,
+     1
+    ],
+    [
+     4,
+     5
+    ],
+    [
+     4,
+     6
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T08",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     5
+    ],
+    [
+     0,
+     6
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     3,
+     3
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T09",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     2,
+     7
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     4,
+     3
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "T10",
+   "kind": "teacher",
+   "capacity": 0,
+   "tags": [],
+   "max_load": 20,
+   "unavailable": [
+    [
+     0,
+     5
+    ],
+    [
+     0,
+     6
+    ],
+    [
+     1,
+     5
+    ],
+    [
+     1,
+     6
+    ],
+    [
+     2,
+     5
+    ],
+    [
+     2,
+     6
+    ],
+    [
+     3,
+     5
+    ],
+    [
+     3,
+     6
+    ]
+   ],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "R01",
+   "kind": "room",
+   "capacity": 70,
+   "tags": [
+    "class"
+   ],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "L01",
+   "kind": "room",
+   "capacity": 35,
+   "tags": [
+    "lab"
+   ],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "L02",
+   "kind": "room",
+   "capacity": 35,
+   "tags": [
+    "lab"
+   ],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "L03",
+   "kind": "room",
+   "capacity": 35,
+   "tags": [
+    "lab"
+   ],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "L04",
+   "kind": "room",
+   "capacity": 35,
+   "tags": [
+    "lab"
+   ],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "SEC-A",
+   "kind": "section",
+   "capacity": 70,
+   "tags": [],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": null
+  },
+  {
+   "id": "SEC-A-G1",
+   "kind": "batch",
+   "capacity": 35,
+   "tags": [],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": "SEC-A"
+  },
+  {
+   "id": "SEC-A-G2",
+   "kind": "batch",
+   "capacity": 35,
+   "tags": [],
+   "max_load": null,
+   "unavailable": [],
+   "preferred": [],
+   "parent": "SEC-A"
+  }
+ ],
+ "requirements": [
+  {
+   "id": "REQ01",
+   "subject": "Compiler Design",
+   "length": 1,
+   "sessions": 3,
+   "teachers": [
+    "T01"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ02",
+   "subject": "Network and System Security",
+   "length": 1,
+   "sessions": 3,
+   "teachers": [
+    "T02"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ03",
+   "subject": "Computer Networks I",
+   "length": 1,
+   "sessions": 3,
+   "teachers": [
+    "T03"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ04",
+   "subject": "Full Stack Web Development",
+   "length": 1,
+   "sessions": 3,
+   "teachers": [
+    "T04"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ05",
+   "subject": "Software Engineering Online",
+   "length": 1,
+   "sessions": 3,
+   "teachers": [
+    "T02"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 0,
+   "room_tag": null,
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ06",
+   "subject": "Compiler Design Lab",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T05"
+   ],
+   "attendees": [
+    "SEC-A-G1",
+    "SEC-A-G2"
+   ],
+   "rooms_needed": 2,
+   "room_tag": "lab",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ07",
+   "subject": "Computer Networks Lab",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T06"
+   ],
+   "attendees": [
+    "SEC-A-G1",
+    "SEC-A-G2"
+   ],
+   "rooms_needed": 2,
+   "room_tag": "lab",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ08",
+   "subject": "Web Development Lab",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T07"
+   ],
+   "attendees": [
+    "SEC-A-G1",
+    "SEC-A-G2"
+   ],
+   "rooms_needed": 2,
+   "room_tag": "lab",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ09",
+   "subject": "Career Skills",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T08",
+    "T09"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ10",
+   "subject": "Employability Skills Practical",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T08"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ11",
+   "subject": "Project Based Learning SE",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T02"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ12",
+   "subject": "Project Based Learning CD",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T01"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ13",
+   "subject": "General Proficiency",
+   "length": 1,
+   "sessions": 1,
+   "teachers": [
+    "T04"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  },
+  {
+   "id": "REQ14",
+   "subject": "Placement Classes",
+   "length": 2,
+   "sessions": 1,
+   "teachers": [
+    "T10"
+   ],
+   "attendees": [
+    "SEC-A"
+   ],
+   "rooms_needed": 1,
+   "room_tag": "class",
+   "fixed_rooms": [],
+   "fixed_slots": []
+  }
+ ],
+ "blocked": [
+  [
+   "L01",
+   0,
+   0
+  ],
+  [
+   "L01",
+   0,
+   1
+  ],
+  [
+   "L01",
+   0,
+   2
+  ],
+  [
+   "L01",
+   0,
+   3
+  ],
+  [
+   "L01",
+   0,
+   4
+  ],
+  [
+   "L01",
+   0,
+   5
+  ],
+  [
+   "L01",
+   1,
+   0
+  ],
+  [
+   "L01",
+   1,
+   1
+  ],
+  [
+   "L01",
+   1,
+   2
+  ],
+  [
+   "L01",
+   1,
+   3
+  ],
+  [
+   "L01",
+   1,
+   6
+  ],
+  [
+   "L01",
+   1,
+   7
+  ],
+  [
+   "L01",
+   2,
+   2
+  ],
+  [
+   "L01",
+   2,
+   3
+  ],
+  [
+   "L01",
+   2,
+   4
+  ],
+  [
+   "L01",
+   2,
+   5
+  ],
+  [
+   "L01",
+   3,
+   0
+  ],
+  [
+   "L01",
+   3,
+   1
+  ],
+  [
+   "L01",
+   3,
+   2
+  ],
+  [
+   "L01",
+   3,
+   3
+  ],
+  [
+   "L01",
+   4,
+   2
+  ],
+  [
+   "L01",
+   4,
+   3
+  ],
+  [
+   "L01",
+   4,
+   4
+  ],
+  [
+   "L01",
+   4,
+   5
+  ],
+  [
+   "L01",
+   4,
+   6
+  ],
+  [
+   "L01",
+   4,
+   7
+  ],
+  [
+   "L02",
+   0,
+   0
+  ],
+  [
+   "L02",
+   0,
+   1
+  ],
+  [
+   "L02",
+   0,
+   2
+  ],
+  [
+   "L02",
+   0,
+   3
+  ],
+  [
+   "L02",
+   0,
+   4
+  ],
+  [
+   "L02",
+   0,
+   5
+  ],
+  [
+   "L02",
+   1,
+   0
+  ],
+  [
+   "L02",
+   1,
+   1
+  ],
+  [
+   "L02",
+   1,
+   2
+  ],
+  [
+   "L02",
+   1,
+   3
+  ],
+  [
+   "L02",
+   1,
+   6
+  ],
+  [
+   "L02",
+   1,
+   7
+  ],
+  [
+   "L02",
+   2,
+   0
+  ],
+  [
+   "L02",
+   2,
+   1
+  ],
+  [
+   "L02",
+   2,
+   2
+  ],
+  [
+   "L02",
+   2,
+   3
+  ],
+  [
+   "L02",
+   2,
+   4
+  ],
+  [
+   "L02",
+   2,
+   5
+  ],
+  [
+   "L02",
+   3,
+   2
+  ],
+  [
+   "L02",
+   3,
+   3
+  ],
+  [
+   "L02",
+   4,
+   2
+  ],
+  [
+   "L02",
+   4,
+   3
+  ],
+  [
+   "L02",
+   4,
+   4
+  ],
+  [
+   "L02",
+   4,
+   5
+  ],
+  [
+   "L02",
+   4,
+   6
+  ],
+  [
+   "L02",
+   4,
+   7
+  ],
+  [
+   "L03",
+   0,
+   0
+  ],
+  [
+   "L03",
+   0,
+   1
+  ],
+  [
+   "L03",
+   0,
+   4
+  ],
+  [
+   "L03",
+   0,
+   5
+  ],
+  [
+   "L03",
+   0,
+   6
+  ],
+  [
+   "L03",
+   0,
+   7
+  ],
+  [
+   "L03",
+   1,
+   4
+  ],
+  [
+   "L03",
+   1,
+   5
+  ],
+  [
+   "L03",
+   1,
+   6
+  ],
+  [
+   "L03",
+   1,
+   7
+  ],
+  [
+   "L03",
+   2,
+   0
+  ],
+  [
+   "L03",
+   2,
+   1
+  ],
+  [
+   "L03",
+   2,
+   2
+  ],
+  [
+   "L03",
+   2,
+   3
+  ],
+  [
+   "L03",
+   2,
+   4
+  ],
+  [
+   "L03",
+   2,
+   5
+  ],
+  [
+   "L03",
+   2,
+   6
+  ],
+  [
+   "L03",
+   2,
+   7
+  ],
+  [
+   "L03",
+   3,
+   0
+  ],
+  [
+   "L03",
+   3,
+   1
+  ],
+  [
+   "L03",
+   3,
+   2
+  ],
+  [
+   "L03",
+   3,
+   3
+  ],
+  [
+   "L03",
+   4,
+   2
+  ],
+  [
+   "L03",
+   4,
+   3
+  ],
+  [
+   "L03",
+   4,
+   4
+  ],
+  [
+   "L03",
+   4,
+   5
+  ],
+  [
+   "L04",
+   0,
+   0
+  ],
+  [
+   "L04",
+   0,
+   1
+  ],
+  [
+   "L04",
+   0,
+   4
+  ],
+  [
+   "L04",
+   0,
+   5
+  ],
+  [
+   "L04",
+   0,
+   6
+  ],
+  [
+   "L04",
+   0,
+   7
+  ],
+  [
+   "L04",
+   1,
+   4
+  ],
+  [
+   "L04",
+   1,
+   5
+  ],
+  [
+   "L04",
+   1,
+   6
+  ],
+  [
+   "L04",
+   1,
+   7
+  ],
+  [
+   "L04",
+   2,
+   0
+  ],
+  [
+   "L04",
+   2,
+   1
+  ],
+  [
+   "L04",
+   2,
+   2
+  ],
+  [
+   "L04",
+   2,
+   3
+  ],
+  [
+   "L04",
+   2,
+   4
+  ],
+  [
+   "L04",
+   2,
+   5
+  ],
+  [
+   "L04",
+   2,
+   6
+  ],
+  [
+   "L04",
+   2,
+   7
+  ],
+  [
+   "L04",
+   3,
+   0
+  ],
+  [
+   "L04",
+   3,
+   1
+  ],
+  [
+   "L04",
+   3,
+   2
+  ],
+  [
+   "L04",
+   3,
+   3
+  ],
+  [
+   "L04",
+   4,
+   2
+  ],
+  [
+   "L04",
+   4,
+   3
+  ],
+  [
+   "L04",
+   4,
+   4
+  ],
+  [
+   "L04",
+   4,
+   5
+  ]
+ ],
+ "hints": [],
+ "max_seconds": 20,
+ "workers": 4,
+ "seed": 7,
+ "max_model_size": 5000000
+}

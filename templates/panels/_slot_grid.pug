@@ -1,0 +1,14 @@
+div.grid
+  table
+    thead
+      tr
+        th Day
+        each label in form.period_labels
+          th= label
+    tbody
+      each row in rows
+        tr
+          th= row.day
+          each cell in row.cells
+            td.slot
+              input(type="checkbox" name="{{ name }}" value="{{ cell.value }}" checked=cell.checked)

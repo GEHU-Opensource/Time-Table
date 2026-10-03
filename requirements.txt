@@ -1,0 +1,15 @@
+Django>=5.2,<5.3
+psycopg[binary]>=3.2
+django-environ>=0.12
+pypugjs==7.0.0
+ortools>=9.15,<9.16
+procrastinate[django]>=3.10,<4
+django-otp>=1.7
+qrcode>=8
+django-axes>=8.3
+django-csp>=4.0
+argon2-cffi>=23
+openpyxl>=3.1
+defusedxml>=0.7
+whitenoise>=6.9
+gunicorn>=23

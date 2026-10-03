@@ -1,0 +1,24 @@
+div.grid
+  if grid.empty
+    p.muted No sessions placed.
+  table
+    thead
+      tr
+        th Day
+        each label in grid.periods
+          th= label
+    tbody
+      each row in grid.rows
+        tr
+          th= row.day
+          each cell in row.cells
+            td(class=cell.css)
+              each entry in cell.entries
+                div
+                  strong= entry.subject
+                  if entry.teachers
+                    small= entry.teachers
+                  if entry.rooms
+                    small= entry.rooms
+                  if entry.attendees
+                    small= entry.attendees

@@ -1,0 +1,10 @@
+FROM caddy:2-builder AS builder
+
+ARG CADDY_DNS_PLUGIN=cloudflare
+
+RUN xcaddy build --with github.com/caddy-dns/${CADDY_DNS_PLUGIN}
+
+FROM caddy:2
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY deploy/Caddyfile /etc/caddy/Caddyfile

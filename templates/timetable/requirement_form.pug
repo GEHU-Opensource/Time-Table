@@ -1,0 +1,10 @@
+form.stack(method="post" action="{% if editing %}{% url 'requirement-edit' pk=editing.pk %}{% else %}{% url 'requirement-add' pk=version.pk %}{% endif %}" hx-post="{% if editing %}{% url 'requirement-edit' pk=editing.pk %}{% else %}{% url 'requirement-add' pk=version.pk %}{% endif %}" hx-target="#panel")
+  - csrf_token
+  | {{ requirement_form.as_div }}
+  div
+    if editing
+      button(type="submit") Save requirement
+      |  
+      a.button.secondary(href="{% url 'version-detail' pk=version.pk %}" hx-get="{% url 'version-detail' pk=version.pk %}" hx-target="#panel") Cancel
+    else
+      button(type="submit") Add requirement

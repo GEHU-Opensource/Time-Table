@@ -1,0 +1,19 @@
+extends layout.pug
+
+block content
+  nav.tabs
+    if 'timetable.view' in perms
+      a(href="{% url 'panel-timetables' %}" hx-get="{% url 'panel-timetables' %}" hx-target="#panel" hx-push-url="true" class="{% if panel_name == 'timetables' %}active{% endif %}") Timetables
+    if 'resource.view' in perms
+      a(href="{% url 'panel-resources' %}" hx-get="{% url 'panel-resources' %}" hx-target="#panel" hx-push-url="true" class="{% if panel_name == 'resources' %}active{% endif %}") Resources
+    if 'subject.manage' in perms
+      a(href="{% url 'panel-subjects' %}" hx-get="{% url 'panel-subjects' %}" hx-target="#panel" hx-push-url="true" class="{% if panel_name == 'subjects' %}active{% endif %}") Subjects
+    if 'data.import' in perms
+      a(href="{% url 'panel-data' %}" hx-get="{% url 'panel-data' %}" hx-target="#panel" hx-push-url="true" class="{% if panel_name == 'data' %}active{% endif %}") Import / Export
+    if 'user.manage' in perms
+      a(href="{% url 'panel-users' %}" hx-get="{% url 'panel-users' %}" hx-target="#panel" hx-push-url="true" class="{% if panel_name == 'users' %}active{% endif %}") Users
+    if 'role.manage' in perms
+      a(href="{% url 'panel-roles' %}" hx-get="{% url 'panel-roles' %}" hx-target="#panel" hx-push-url="true" class="{% if panel_name == 'roles' %}active{% endif %}") Roles
+    a(href="{% url 'mfa-setup' %}" class="{% if panel_name == 'account' %}active{% endif %}") Account
+  #panel
+    | {% include panel_template %}

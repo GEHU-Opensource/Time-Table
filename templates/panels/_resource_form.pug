@@ -1,0 +1,21 @@
+form.stack(method="post" action="{% if editing %}{% url 'resource-edit' pk=editing.pk %}{% else %}{% url 'resource-create' %}{% endif %}" hx-post="{% if editing %}{% url 'resource-edit' pk=editing.pk %}{% else %}{% url 'resource-create' %}{% endif %}" hx-target="#panel")
+  - csrf_token
+  | {{ form.non_field_errors }}
+  each field in form.main_fields
+    div
+      | {{ field.label_tag }} {{ field }} {{ field.errors }}
+      if field.help_text
+        small.muted= field.help_text
+  h3 Unavailable slots
+  | {{ form.unavailable.errors }}
+  | {% include "panels/_slot_grid.pug" with name="unavailable" rows=form.unavailable_rows %}
+  h3 Preferred slots
+  | {{ form.preferred.errors }}
+  | {% include "panels/_slot_grid.pug" with name="preferred" rows=form.preferred_rows %}
+  div
+    if editing
+      button(type="submit") Save resource
+      |  
+      a.button.secondary(href="{% url 'panel-resources' %}?kind={{ editing.kind }}" hx-get="{% url 'panel-resources' %}?kind={{ editing.kind }}" hx-target="#panel") Cancel
+    else
+      button(type="submit") Create resource

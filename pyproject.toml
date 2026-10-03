@@ -1,0 +1,48 @@
+[project]
+name = "timetable"
+version = "0.1.0"
+requires-python = ">=3.13"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "DJ"]
+ignore = ["S101", "S105", "S106", "DJ001"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S"]
+"core/tenancy.py" = ["DJ012"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "--create-db -p no:cacheprovider"
+env = [
+  "D:ENV=test",
+  "D:SECRET_KEY=test-only-secret-key-0000000000000000000000000000000000000000",
+  "D:BASE_DOMAIN=testserver",
+  "D:ALLOWED_HOSTS=.testserver,testserver",
+  "D:DATABASE_URL=postgres:///timetable_dev",
+  "D:DEBUG=false",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.importlinter]
+root_packages = ["solver", "core", "timetable", "config"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "solver is pure python"
+type = "forbidden"
+source_modules = ["solver"]
+forbidden_modules = ["django", "core", "timetable", "config"]
+
+[[tool.importlinter.contracts]]
+name = "core does not depend on timetable"
+type = "forbidden"
+source_modules = ["core"]
+forbidden_modules = ["timetable"]
