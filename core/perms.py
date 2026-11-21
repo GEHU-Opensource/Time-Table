@@ -20,6 +20,21 @@ class Perm(StrEnum):
     TENANT_SETTINGS = "tenant.settings"
 
 
+PERM_LABELS = {
+    Perm.RESOURCE_VIEW: "View teachers and rooms",
+    Perm.RESOURCE_MANAGE: "Edit teachers and rooms",
+    Perm.SUBJECT_MANAGE: "Edit subjects",
+    Perm.TIMETABLE_VIEW: "View timetables",
+    Perm.TIMETABLE_MANAGE: "Edit timetables",
+    Perm.TIMETABLE_GENERATE: "Generate timetables",
+    Perm.TIMETABLE_PUBLISH: "Publish timetables",
+    Perm.DATA_IMPORT: "Import from Excel",
+    Perm.DATA_EXPORT: "Export to Excel",
+    Perm.USER_MANAGE: "Manage users",
+    Perm.ROLE_MANAGE: "Manage roles",
+    Perm.TENANT_SETTINGS: "Change university settings",
+}
+
 PRIVILEGED = frozenset(
     {Perm.TIMETABLE_PUBLISH, Perm.USER_MANAGE, Perm.ROLE_MANAGE, Perm.TENANT_SETTINGS}
 )

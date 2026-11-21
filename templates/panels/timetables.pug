@@ -1,5 +1,12 @@
 section.card
   h1 Timetables
+  if setup
+    ol.steps
+      each step in setup
+        li(class="{% if step.count %}done{% endif %}")
+          a(href="{{ step.url }}") #{step.label}: #{step.count}
+    if setup_pending
+      p.muted Start here: add what is still missing above, then create a timetable. You can also upload everything in one Excel file under Import / Export.
   if notice
     p.flash.success= notice
   if rows
@@ -17,21 +24,22 @@ section.card
             td
               a(href="{% url 'timetable-detail' pk=row.timetable.pk %}" hx-get="{% url 'timetable-detail' pk=row.timetable.pk %}" hx-target="#panel" hx-push-url="true")= row.timetable.name
               if row.timetable.archived
-                |  
+                |
                 span.badge archived
             td= row.timetable.department|default:"Shared"
             td #{row.timetable.start_date} to #{row.timetable.end_date}
             td
               if row.latest
-                | v#{row.latest.number}
+                a(href="{% url 'version-detail' pk=row.latest.pk %}" hx-get="{% url 'version-detail' pk=row.latest.pk %}" hx-target="#panel" hx-push-url="true") Open v#{row.latest.number}
               else
                 span.muted none
             td
               if row.latest
                 span(class="badge {{ row.latest.status }}")= row.latest.status
   else
-    p.muted No timetables yet.
+    p.muted No timetables yet. Create one below.
 if form
   section.card
-    h2 New timetable
+    h2#new-timetable New timetable
+    p.muted Set the term dates, working days and class timings. The timetable opens straight away so you can add requirements and generate it.
     include panels/_timetable_form.pug

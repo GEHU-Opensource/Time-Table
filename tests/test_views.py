@@ -74,6 +74,8 @@ def test_panel_full_page_and_fragment(as_admin, panel):
     assert "<html" not in html(fragment)
     assert reverse("mfa-setup") not in html(fragment)
     assert "<section" in html(fragment)
+    restored = as_admin.get(panel_url(panel), headers={**HX, "HX-History-Restore-Request": "true"})
+    assert "<html" in html(restored)
 
 
 def test_create_timetable_through_form(as_admin, admin_user, department, monkeypatch):
@@ -81,11 +83,9 @@ def test_create_timetable_through_form(as_admin, admin_user, department, monkeyp
 
     def fake_create(*, name, department, grid, start_date, end_date, actor):
         seen.update(grid=grid, actor=actor)
-        timetable = Timetable.objects.create(
+        return Timetable.objects.create(
             name=name, department=department, grid=grid, start_date=start_date, end_date=end_date
         )
-        Version.objects.create(timetable=timetable, number=1, grid=grid, created_by=actor)
-        return timetable
 
     monkeypatch.setattr(services, "create_timetable", fake_create)
     response = as_admin.post(
@@ -100,9 +100,11 @@ def test_create_timetable_through_form(as_admin, admin_user, department, monkeyp
             "end_date": "2026-05-30",
         },
     )
-    timetable = Timetable.objects.get(name="ECE Sem 1")
+    draft = Version.objects.get(timetable__name="ECE Sem 1")
+    assert draft.number == 1
+    assert draft.created_by == admin_user
     assert response.status_code == 302
-    assert response["Location"] == reverse("timetable-detail", kwargs={"pk": timetable.pk})
+    assert response["Location"] == reverse("version-detail", kwargs={"pk": draft.pk})
     assert seen["grid"] == {
         "days": ["Mon", "Tue", "Wed"],
         "periods": [["09:00", "10:00"], ["10:00", "11:00"], ["11:00", "12:00"]],
@@ -181,6 +183,9 @@ def test_add_requirement_rejects_unknown_slot(as_admin, version, catalogue):
 
 def test_edit_and_delete_requirement(as_admin, version, catalogue):
     requirement = Requirement.objects.create(version=version, subject=catalogue.subject, sessions=2)
+    version.assignments.create(
+        requirement=requirement, session=0, resource=catalogue.teacher, day=0, period=0
+    )
     edit_url = reverse("requirement-edit", kwargs={"pk": requirement.pk})
     page = as_admin.get(edit_url, headers=HX)
     assert page.status_code == 200
@@ -199,6 +204,7 @@ def test_edit_and_delete_requirement(as_admin, version, catalogue):
     assert response.status_code == 200
     requirement.refresh_from_db()
     assert requirement.sessions == 4
+    assert not requirement.assignments.exists()
     response = as_admin.post(reverse("requirement-delete", kwargs={"pk": requirement.pk}))
     assert response.status_code == 302
     assert not Requirement.objects.filter(pk=requirement.pk).exists()
@@ -222,14 +228,34 @@ def test_generate_and_status_polls_only_while_solving(as_admin, version, admin_u
     assert 'hx-trigger="every 3s"' in html(polling)
     assert status_url in html(polling)
     assert 'class="badge solving"' in html(polling)
+    assert "HX-Refresh" not in polling
 
     Version.objects.filter(pk=version.pk).update(
         status="failed", solver_stats={"reasons": ["no room fits lab"], "unplaced": [["r1", 0]]}
     )
     failed = as_admin.get(status_url, headers=HX)
+    assert failed["HX-Refresh"] == "true"
     assert "hx-trigger" not in html(failed)
     assert "no room fits lab" in html(failed)
     assert "Unplaced sessions: 1" in html(failed)
+
+
+def test_version_page_flags_a_stale_timetable(as_admin, version, catalogue):
+    requirement = Requirement.objects.create(version=version, subject=catalogue.subject, sessions=2)
+    url = reverse("version-detail", kwargs={"pk": version.pk})
+    publish_url = reverse("version-publish", kwargs={"pk": version.pk})
+    version.assignments.create(
+        requirement=requirement, session=0, resource=catalogue.section, day=0, period=0
+    )
+    stale = html(as_admin.get(url, headers=HX))
+    assert "requirements changed" in stale
+    assert publish_url not in stale
+    version.assignments.create(
+        requirement=requirement, session=1, resource=catalogue.section, day=1, period=0
+    )
+    ready = html(as_admin.get(url, headers=HX))
+    assert "The timetable is ready" in ready
+    assert publish_url in ready
 
 
 def test_archive_toggle(as_admin, timetable):
@@ -323,6 +349,13 @@ def test_export_calls_excel(as_admin, version, monkeypatch):
     )
     assert response["Content-Disposition"] == 'attachment; filename="timetable-v1.xlsx"'
     assert response.content == b"xlsx-bytes"
+
+
+def test_sample_workbook_downloads_and_parses(as_admin):
+    response = as_admin.get(reverse("data-sample"))
+    assert response.status_code == 200
+    assert response["Content-Disposition"] == 'attachment; filename="timetable-sample.xlsx"'
+    assert excel_module.parse_workbook(response.content).errors == []
 
 
 def test_import_dry_run_then_apply(as_admin, admin_user, monkeypatch):

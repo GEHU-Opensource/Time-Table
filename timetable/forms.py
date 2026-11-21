@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Department, Role
-from core.perms import Perm
+from core.perms import PERM_LABELS, Perm
 from timetable import grids
 from timetable.models import Requirement, RequirementResource, Resource, Subject, Version
 
@@ -47,8 +47,9 @@ def to_minutes(hours, minutes):
 
 
 class TimetableForm(forms.Form):
-    name = forms.CharField(max_length=120)
+    name = forms.CharField(max_length=120, help_text="For example: CSE Semester 3")
     days = forms.MultipleChoiceField(
+        label="Working days",
         choices=[(day, day) for day in DAYS],
         widget=forms.CheckboxSelectMultiple,
         initial=DAYS[:6],
@@ -56,21 +57,22 @@ class TimetableForm(forms.Form):
     periods = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 8}),
         initial="\n".join(f"{start}-{end}" for start, end in grids.DEFAULT_GRID["periods"]),
-        help_text="One HH:MM-HH:MM per line",
+        help_text="One period per line as start-end, for example 09:00-10:00",
     )
     breaks_after = forms.CharField(
+        label="Break after period",
         required=False,
         initial="4",
-        help_text="Period numbers followed by a break, comma separated",
+        help_text="Period numbers followed by a break, for example 4 for lunch after period 4",
     )
-    start_date = forms.DateField(widget=DATE_INPUT)
-    end_date = forms.DateField(widget=DATE_INPUT)
+    start_date = forms.DateField(label="Term starts", widget=DATE_INPUT)
+    end_date = forms.DateField(label="Term ends", widget=DATE_INPUT)
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["department"] = department_field(user)
         self.order_fields(
-            ["name", "department", "days", "periods", "breaks_after", "start_date", "end_date"]
+            ["name", "department", "start_date", "end_date", "days", "periods", "breaks_after"]
         )
 
     def clean_days(self):
@@ -128,31 +130,67 @@ class TimetableForm(forms.Form):
 
 class VersionChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, version):
-        return f"v{version.number} ({version.status})"
+        return f"Copy of v{version.number} ({version.status})"
 
 
 class DraftForm(forms.Form):
-    reason = forms.CharField(required=False, max_length=400)
+    reason = forms.CharField(required=False, max_length=400, label="Note (optional)")
 
     def __init__(self, timetable, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        versions = Version.objects.filter(timetable=timetable).order_by("-number")
         self.fields["parent"] = VersionChoiceField(
-            Version.objects.filter(timetable=timetable).order_by("-number"),
+            versions,
             required=False,
-            empty_label="Start empty",
+            label="Start from",
+            empty_label="Empty (no requirements)",
+            initial=versions.first(),
         )
         self.order_fields(["parent", "reason"])
 
 
+def code_and_name(item):
+    if item.name and item.name != item.code:
+        return f"{item.code} - {item.name}"
+    return item.code
+
+
+class NamedChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, item):
+        return code_and_name(item)
+
+
+class NamedMultipleChoiceField(forms.ModelMultipleChoiceField):
+    widget = forms.CheckboxSelectMultiple
+
+    def label_from_instance(self, item):
+        return code_and_name(item)
+
+
 class RequirementForm(forms.Form):
-    sessions = forms.IntegerField(min_value=1, max_value=40, initial=1)
+    ADVANCED = ("length", "room_tag", "rooms_needed", "fixed_room", "fixed_slots")
+
+    sessions = forms.IntegerField(min_value=1, max_value=40, initial=1, label="Classes per week")
     length = forms.IntegerField(
-        min_value=1, max_value=4, required=False, help_text="Defaults to the subject length"
+        min_value=1,
+        max_value=4,
+        required=False,
+        label="Periods per class",
+        help_text="Leave blank to use the subject's length",
     )
-    room_tag = forms.CharField(max_length=30, required=False)
-    rooms_needed = forms.IntegerField(min_value=0, max_value=8, initial=1)
+    room_tag = forms.CharField(
+        max_length=30,
+        required=False,
+        label="Room type",
+        help_text="Only use rooms with this tag, for example lab. Blank means any room",
+    )
+    rooms_needed = forms.IntegerField(
+        min_value=0, max_value=8, initial=1, help_text="Usually 1. Use 0 when no room is needed"
+    )
     fixed_slots = forms.CharField(
-        required=False, help_text="For example 'Mon 1, Tue 3' (day and period number)"
+        required=False,
+        label="Fixed day and period",
+        help_text="For example 'Mon 1, Tue 3' (day and period number)",
     )
 
     def __init__(self, user, version, *args, instance=None, **kwargs):
@@ -162,17 +200,21 @@ class RequirementForm(forms.Form):
             kwargs["initial"] = self.initial_from(instance)
         super().__init__(*args, **kwargs)
         resources = visible(Resource.objects, user).filter(active=True)
-        self.fields["subject"] = forms.ModelChoiceField(
-            visible(Subject.objects, user).filter(active=True)
+        self.fields["subject"] = NamedChoiceField(
+            visible(Subject.objects, user).filter(active=True), empty_label="Choose a subject"
         )
-        self.fields["teachers"] = forms.ModelMultipleChoiceField(
+        self.fields["teachers"] = NamedMultipleChoiceField(
             resources.filter(kind=Resource.Kind.TEACHER)
         )
-        self.fields["attendees"] = forms.ModelMultipleChoiceField(
-            resources.filter(kind__in=[Resource.Kind.SECTION, Resource.Kind.BATCH])
+        self.fields["attendees"] = NamedMultipleChoiceField(
+            resources.filter(kind__in=[Resource.Kind.SECTION, Resource.Kind.BATCH]),
+            label="Sections or batches",
         )
-        self.fields["fixed_room"] = forms.ModelChoiceField(
-            resources.filter(kind=Resource.Kind.ROOM), required=False
+        self.fields["fixed_room"] = NamedChoiceField(
+            resources.filter(kind=Resource.Kind.ROOM),
+            required=False,
+            label="Always in this room",
+            empty_label="Any room",
         )
         self.order_fields(
             [
@@ -187,6 +229,15 @@ class RequirementForm(forms.Form):
                 "fixed_slots",
             ]
         )
+
+    @property
+    def missing(self):
+        needed = (("subject", "subjects"), ("teachers", "teachers"), ("attendees", "sections"))
+        return [label for name, label in needed if not self.fields[name].queryset.exists()]
+
+    @property
+    def advanced_open(self):
+        return self.instance is not None or any(self[name].errors for name in self.ADVANCED)
 
     def initial_from(self, requirement):
         participants = list(requirement.participants.all())
@@ -265,7 +316,7 @@ class RequirementForm(forms.Form):
 
 
 class PublishForm(forms.Form):
-    effective_from = forms.DateField(widget=DATE_INPUT)
+    effective_from = forms.DateField(label="Goes live on", widget=DATE_INPUT)
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("initial", {"effective_from": timezone.localdate()})
@@ -274,15 +325,28 @@ class PublishForm(forms.Form):
 
 class ResourceForm(forms.Form):
     SLOT_FIELDS = ("unavailable", "preferred")
+    KIND_FIELDS = {
+        Resource.Kind.TEACHER: ("code", "name", "department", "max_load"),
+        Resource.Kind.ROOM: ("code", "name", "department", "capacity", "tags"),
+        Resource.Kind.SECTION: ("code", "name", "department", "capacity"),
+        Resource.Kind.BATCH: ("code", "name", "department", "capacity", "parent"),
+    }
+    CAPACITY_LABELS = {
+        Resource.Kind.ROOM: "Seats",
+        Resource.Kind.SECTION: "Students",
+        Resource.Kind.BATCH: "Students",
+    }
 
     kind = forms.ChoiceField(choices=Resource.Kind.choices)
-    code = forms.CharField(max_length=30)
-    name = forms.CharField(max_length=120, required=False)
-    capacity = forms.IntegerField(
-        min_value=0, initial=0, help_text="Room capacity or section strength"
+    code = forms.CharField(max_length=30, help_text="Short unique id, for example T01 or R101")
+    name = forms.CharField(max_length=120, required=False, help_text="Optional full name")
+    capacity = forms.IntegerField(min_value=0, initial=0)
+    tags = forms.CharField(
+        required=False,
+        label="Room type tags",
+        help_text="Comma separated, for example: lecture, lab",
     )
-    tags = forms.CharField(required=False, help_text="Comma separated")
-    max_load = forms.IntegerField(min_value=0, required=False, help_text="Teachers only")
+    max_load = forms.IntegerField(min_value=0, required=False, label="Max classes per week")
 
     def __init__(self, user, grid, *args, instance=None, **kwargs):
         self.grid = grid
@@ -294,7 +358,8 @@ class ResourceForm(forms.Form):
         self.fields["parent"] = forms.ModelChoiceField(
             visible(Resource.objects, user).filter(kind=Resource.Kind.SECTION, active=True),
             required=False,
-            help_text="Batches only: the section the batch belongs to",
+            label="Belongs to section",
+            empty_label="Choose a section",
         )
         choices = grids.slot_choices(grid)
         for name in self.SLOT_FIELDS:
@@ -304,6 +369,7 @@ class ResourceForm(forms.Form):
         self.order_fields(
             ["kind", "code", "name", "department", "capacity", "tags", "max_load", "parent"]
         )
+        self.fields["capacity"].label = self.CAPACITY_LABELS.get(self["kind"].value(), "Capacity")
 
     def initial_from(self, resource):
         return {
@@ -319,9 +385,28 @@ class ResourceForm(forms.Form):
             "preferred": grids.slot_values(resource.preferred),
         }
 
+    def split_fields(self):
+        wanted = self.KIND_FIELDS.get(self["kind"].value())
+        shown, tucked = [], [self["kind"]]
+        for name in self.fields:
+            if name == "kind" or name in self.SLOT_FIELDS:
+                continue
+            field = self[name]
+            relevant = wanted is None or name in wanted or bool(field.errors)
+            (shown if relevant else tucked).append(field)
+        return shown, tucked
+
     @property
     def main_fields(self):
-        return [self[name] for name in self.fields if name not in self.SLOT_FIELDS]
+        return self.split_fields()[0]
+
+    @property
+    def tucked_fields(self):
+        return self.split_fields()[1]
+
+    @property
+    def slots_open(self):
+        return any(self[name].value() or self[name].errors for name in self.SLOT_FIELDS)
 
     def slot_rows(self, name):
         return grids.slot_rows(self.grid, self[name].value() or [])
@@ -372,9 +457,15 @@ class ResourceForm(forms.Form):
 
 
 class SubjectForm(forms.Form):
-    code = forms.CharField(max_length=30)
+    code = forms.CharField(max_length=30, help_text="Short code, for example CS301")
     name = forms.CharField(max_length=120)
-    length = forms.IntegerField(min_value=1, max_value=4, initial=1)
+    length = forms.IntegerField(
+        min_value=1,
+        max_value=4,
+        initial=1,
+        label="Periods per class",
+        help_text="1 for a lecture, 2 or more for a lab that runs back to back",
+    )
 
     def __init__(self, user, *args, instance=None, **kwargs):
         self.instance = instance
@@ -402,7 +493,12 @@ class SubjectForm(forms.Form):
 
 class ImportForm(forms.Form):
     file = forms.FileField(label="Workbook (.xlsx)")
-    dry_run = forms.BooleanField(required=False, initial=True, label="Dry run (validate only)")
+    dry_run = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Check only, do not save yet (dry run)",
+        label_suffix="",
+    )
 
     def clean_file(self):
         upload = self.cleaned_data["file"]
@@ -424,7 +520,9 @@ class ExportForm(forms.Form):
         self.fields["version"] = TimetableVersionChoiceField(
             visible(Version.objects, user)
             .select_related("timetable")
-            .order_by("timetable__name", "-number")
+            .order_by("timetable__name", "-number"),
+            label="Timetable",
+            empty_label="Choose a timetable",
         )
 
 
@@ -434,15 +532,27 @@ class InviteForm(forms.Form):
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["role"] = forms.ModelChoiceField(Role.objects.all())
+        self.fields["role"] = forms.ModelChoiceField(
+            Role.objects.all(), empty_label="Choose a role"
+        )
         self.fields["department"] = department_field(user)
         self.order_fields(["email", "name", "role", "department"])
+
+
+class DepartmentForm(forms.Form):
+    name = forms.CharField(max_length=120, label="New department")
+
+    def clean_name(self):
+        name = self.cleaned_data["name"].strip()
+        if Department.objects.filter(name__iexact=name).exists():
+            raise forms.ValidationError("This department already exists")
+        return name
 
 
 class RoleForm(forms.Form):
     name = forms.CharField(max_length=60)
     permissions = forms.MultipleChoiceField(
-        choices=[(perm.value, perm.value) for perm in Perm],
+        choices=[(perm.value, PERM_LABELS[perm]) for perm in Perm],
         widget=forms.CheckboxSelectMultiple,
         required=False,
     )

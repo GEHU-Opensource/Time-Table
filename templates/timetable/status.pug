@@ -1,12 +1,13 @@
 if version.status == 'solving'
   div#version-status(hx-get="{% url 'version-status' pk=version.pk %}" hx-trigger="every 3s" hx-swap="outerHTML")
     span.badge.solving solving
-    |  
-    span.muted Solver running, this refreshes every few seconds.
+    |
+    span.muted Building the timetable. This page updates by itself when it is done.
 else
-  div#version-status(hx-get="{% url 'version-status' pk=version.pk %}" hx-swap="outerHTML")
+  div#version-status
     span(class="badge {{ version.status }}")= version.status
     if version.status == 'failed'
+      p.flash.error Could not build a timetable. Fix the problems listed here, then press Generate timetable again.
       if version.solver_stats.reasons
         ul.errorlist
           each reason in version.solver_stats.reasons

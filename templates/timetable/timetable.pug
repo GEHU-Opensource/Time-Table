@@ -25,7 +25,7 @@ section.card
           th Version
           th Status
           th Effective from
-          th Parent
+          th Copied from
           th Created
           th Actions
       tbody
@@ -44,11 +44,12 @@ section.card
             td
               a(href="{% url 'version-detail' pk=version.pk %}" hx-get="{% url 'version-detail' pk=version.pk %}" hx-target="#panel" hx-push-url="true") Open
   else
-    p.muted No versions yet.
+    p.muted No versions yet. Create the first one below.
 if draft_form
   section.card
-    h2 New draft
-    form.row(method="post" action="{% url 'version-create' pk=timetable.pk %}" hx-post="{% url 'version-create' pk=timetable.pk %}" hx-target="#panel")
+    h2 New version
+    p.muted To change a timetable that is already published, make a new version, edit it, generate it and publish again. The old one stays live until then.
+    form.row(method="post" action="{% url 'version-create' pk=timetable.pk %}" hx-post="{% url 'version-create' pk=timetable.pk %}" hx-target="#panel" hx-push-url="true")
       - csrf_token
       | {{ draft_form.as_div }}
-      button(type="submit") Create draft
+      button(type="submit") Create version
