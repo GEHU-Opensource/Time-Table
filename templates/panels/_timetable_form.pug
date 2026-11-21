@@ -1,4 +1,4 @@
-form.stack(method="post" action="{% url 'timetable-create' %}" hx-post="{% url 'timetable-create' %}" hx-target="#panel")
+form.stack(method="post" action="{% url 'timetable-create' %}" hx-post="{% url 'timetable-create' %}" hx-target="#panel" hx-push-url="true")
   - csrf_token
   | {{ form.as_div }}
   div

@@ -13,11 +13,12 @@ from django.utils.http import content_disposition_header
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from core.audit import audit
-from core.models import Role, User
-from core.perms import Perm, PermissionedView, can, mfa_redirect
+from core.models import Department, Role, User
+from core.perms import PERM_LABELS, Perm, PermissionedView, can, mfa_redirect
 from timetable import grids, services
 from timetable.forms import (
     XLSX_CONTENT_TYPE,
+    DepartmentForm,
     DraftForm,
     ExportForm,
     ImportForm,
@@ -41,10 +42,17 @@ PANEL_ORDER = [
     ("roles", Perm.ROLE_MANAGE),
 ]
 EDITABLE_STATUSES = frozenset({Version.Status.DRAFT, Version.Status.FAILED})
+GENERATED_STATUSES = frozenset({Version.Status.DRAFT, Version.Status.PUBLISHED})
 GRID_KINDS = {
     Resource.Kind.SECTION: "version-grid-section",
     Resource.Kind.TEACHER: "version-grid-teacher",
     Resource.Kind.ROOM: "version-grid-room",
+}
+KIND_PLURALS = {
+    Resource.Kind.TEACHER: "Teachers",
+    Resource.Kind.ROOM: "Rooms",
+    Resource.Kind.SECTION: "Sections",
+    Resource.Kind.BATCH: "Batches",
 }
 
 
@@ -140,6 +148,29 @@ class ResourceLink:
     url: str
 
 
+@dataclass
+class SetupStep:
+    label: str
+    count: int
+    url: str
+
+
+def setup_steps(user, timetable_count):
+    steps = []
+    if Perm.RESOURCE_VIEW in user.perms:
+        kinds = visible(Resource.objects, user).order_by().values_list("kind")
+        counts = dict(kinds.annotate(Count("pk")))
+        for kind in (Resource.Kind.TEACHER, Resource.Kind.ROOM, Resource.Kind.SECTION):
+            url = f"{reverse('panel-resources')}?kind={kind}"
+            steps.append(SetupStep(KIND_PLURALS[kind], counts.get(kind, 0), url))
+    if Perm.SUBJECT_MANAGE in user.perms:
+        count = visible(Subject.objects, user).count()
+        steps.append(SetupStep("Subjects", count, reverse("panel-subjects")))
+    url = f"{reverse('panel-timetables')}#new-timetable"
+    steps.append(SetupStep("Timetables", timetable_count, url))
+    return steps
+
+
 class PanelView(PermissionedView):
     panel_name = None
     panel_template = None
@@ -162,7 +193,9 @@ class PanelView(PermissionedView):
 
     @property
     def is_hx(self):
-        return self.request.headers.get("HX-Request") == "true"
+        headers = self.request.headers
+        restoring = headers.get("HX-History-Restore-Request") == "true"
+        return headers.get("HX-Request") == "true" and not restoring
 
     def get_template_names(self):
         return [self.panel_template] if self.is_hx else ["admin.pug"]
@@ -207,6 +240,7 @@ class TimetablesPanel(PanelView):
         user = self.request.user
         timetables = (
             visible(Timetable.objects, user)
+            .order_by("archived", "name")
             .select_related("department")
             .prefetch_related(
                 Prefetch(
@@ -220,10 +254,17 @@ class TimetablesPanel(PanelView):
             TimetableRow(timetable=t, latest=t.latest_versions[0] if t.latest_versions else None)
             for t in timetables
         ]
+        manages = Perm.TIMETABLE_MANAGE in user.perms
         form = kwargs.get("form")
-        if form is None and Perm.TIMETABLE_MANAGE in user.perms:
+        if form is None and manages:
             form = TimetableForm(user)
-        return {"rows": rows, "form": form}
+        setup = setup_steps(user, len(rows)) if manages else []
+        return {
+            "rows": rows,
+            "form": form,
+            "setup": setup,
+            "setup_pending": any(step.count == 0 for step in setup),
+        }
 
 
 class TimetableCreateView(TimetablesPanel):
@@ -246,7 +287,8 @@ class TimetableCreateView(TimetablesPanel):
         except services.ServiceError as error:
             form.add_error(None, str(error))
             return self.render_panel(form=form)
-        return redirect("timetable-detail", pk=timetable.pk)
+        version = services.create_draft(timetable, actor=request.user)
+        return redirect("version-detail", pk=version.pk)
 
 
 class TimetableDetailView(PanelView):
@@ -363,8 +405,8 @@ class VersionDetailView(PanelView):
             )
         return rows
 
-    def resource_links(self, version):
-        resource_ids = {row["resource_id"] for row in assignment_rows([version.pk])}
+    def resource_links(self, version, rows):
+        resource_ids = {row["resource_id"] for row in rows}
         links = []
         for resource in Resource.objects.filter(pk__in=resource_ids).order_by("kind", "code"):
             name = GRID_KINDS.get(resource.kind)
@@ -376,6 +418,13 @@ class VersionDetailView(PanelView):
                     )
                 )
         return links
+
+    def preview(self, version, links, rows):
+        sections = [link for link in links if link.resource.kind == Resource.Kind.SECTION]
+        chosen = (sections or links or [None])[0]
+        if chosen is None:
+            return None, None
+        return chosen.resource, grids.build_grid(version.grid, rows, chosen.resource.pk)
 
     def panel_context(self, **kwargs):
         user = self.request.user
@@ -391,10 +440,18 @@ class VersionDetailView(PanelView):
         can_publish = can(user, Perm.TIMETABLE_PUBLISH, timetable, write=True)
         if publish_form is None and can_publish:
             publish_form = PublishForm()
+        rows = assignment_rows([version.pk])
+        requirements = self.requirement_rows(version)
+        links = self.resource_links(version, rows)
+        generated = bool(links) and version.status in GENERATED_STATUSES
+        placed = len({(row["requirement_id"], row["session"]) for row in rows})
+        needed = sum(row.requirement.sessions for row in requirements)
+        stale = generated and version.status == Version.Status.DRAFT and placed != needed
+        preview_resource, preview_grid = self.preview(version, links if generated else [], rows)
         return {
             "version": version,
             "timetable": timetable,
-            "requirements": self.requirement_rows(version),
+            "requirements": requirements,
             "editable": editable,
             "can_generate": can(user, Perm.TIMETABLE_GENERATE, timetable, write=True)
             and version.status in EDITABLE_STATUSES,
@@ -406,7 +463,12 @@ class VersionDetailView(PanelView):
             "violations": kwargs.get("violations", []),
             "error": kwargs.get("error"),
             "others": Version.objects.filter(timetable=timetable).exclude(pk=version.pk),
-            "resource_links": self.resource_links(version),
+            "resource_links": links,
+            "generated": generated,
+            "stale": stale,
+            "ready": generated and not stale,
+            "preview_resource": preview_resource,
+            "grid": preview_grid,
         }
 
 
@@ -465,6 +527,7 @@ class RequirementEditView(VersionOwnedMixin, VersionDetailView):
         if not form.is_valid():
             return self.render_panel(version=version, requirement_form=form, editing=requirement)
         form.save()
+        requirement.assignments.all().delete()
         audit(
             request.user,
             "requirement.edit",
@@ -508,7 +571,9 @@ class VersionSolveView(VersionOwnedMixin, VersionDetailView):
         except services.ServiceError as error:
             return self.render_panel(version=version, error=str(error))
         version.refresh_from_db()
-        return self.refreshed(version=version, notice="Solver started")
+        solving = version.status == Version.Status.SOLVING
+        notice = "Building the timetable. This page updates by itself." if solving else None
+        return self.refreshed(version=version, notice=notice)
 
 
 class VersionReopenView(VersionOwnedMixin, VersionDetailView):
@@ -549,6 +614,12 @@ class VersionStatusView(VersionDetailView):
 
     def panel_context(self, **kwargs):
         return {"version": self.version()}
+
+    def render_to_response(self, context, **kwargs):
+        response = super().render_to_response(context, **kwargs)
+        if self.is_hx and context["version"].status != Version.Status.SOLVING:
+            response["HX-Refresh"] = "true"
+        return response
 
 
 def comparison_rows(output):
@@ -638,7 +709,7 @@ class ResourcesPanel(PanelView):
     permission = Perm.RESOURCE_VIEW
     panel_name = "resources"
     panel_template = "panels/resources.pug"
-    title = "Resources"
+    title = "Teachers & Rooms"
 
     def kind(self):
         requested = self.request.GET.get("kind") or self.request.POST.get("kind")
@@ -650,18 +721,20 @@ class ResourcesPanel(PanelView):
     def panel_context(self, **kwargs):
         user = self.request.user
         kind = self.kind()
-        resources = (
+        resources = list(
             visible(Resource.objects, user)
             .filter(kind=kind)
             .select_related("department", "parent")
-            .order_by("code")
+            .order_by("-active", "code")
         )
+        for resource in resources:
+            resource.editable = can(user, Perm.RESOURCE_MANAGE, resource, write=True)
         form = kwargs.get("form")
         if form is None and Perm.RESOURCE_MANAGE in user.perms:
             form = ResourceForm(user, tenant_grid(self.request), initial={"kind": kind})
         return {
             "kind": kind,
-            "kinds": Resource.Kind.choices,
+            "kinds": list(KIND_PLURALS.items()),
             "resources": resources,
             "form": form,
             "editing": kwargs.get("editing"),
@@ -738,8 +811,13 @@ class SubjectsPanel(PanelView):
     def panel_context(self, **kwargs):
         user = self.request.user
         form = kwargs.get("form") or SubjectForm(user)
+        subjects = list(
+            visible(Subject.objects, user).select_related("department").order_by("-active", "code")
+        )
+        for subject in subjects:
+            subject.editable = can(user, Perm.SUBJECT_MANAGE, subject, write=True)
         return {
-            "subjects": visible(Subject.objects, user).select_related("department"),
+            "subjects": subjects,
             "form": form,
             "editing": kwargs.get("editing"),
         }
@@ -809,11 +887,13 @@ class DataPanel(PanelView):
         export_form = kwargs.get("export_form")
         if export_form is None and Perm.DATA_EXPORT in user.perms:
             export_form = ExportForm(user)
+        summary = kwargs.get("summary") or {}
         return {
             "import_form": kwargs.get("import_form") or ImportForm(),
             "export_form": export_form,
             "plan": kwargs.get("plan"),
-            "summary": kwargs.get("summary"),
+            "summary": {key: value for key, value in summary.items() if not key.endswith("_id")},
+            "imported_version": summary.get("version_id"),
             "applied": kwargs.get("applied", False),
         }
 
@@ -829,6 +909,14 @@ class DataImportView(DataPanel):
         summary = excel().apply(plan, request.user)
         audit(request.user, "data.import", after={"summary": summary})
         return self.render_panel(plan=plan, summary=summary, applied=True)
+
+
+class DataSampleView(DataPanel):
+    def get(self, request):
+        self.check_panel_access(request)
+        response = HttpResponse(excel().sample_workbook(), content_type=XLSX_CONTENT_TYPE)
+        response["Content-Disposition"] = content_disposition_header(True, "timetable-sample.xlsx")
+        return response
 
 
 class DataExportView(DataPanel):
@@ -863,10 +951,16 @@ class UsersPanel(PanelView):
 
     def panel_context(self, **kwargs):
         user = self.request.user
+        unscoped = user.department_id is None
+        department_form = kwargs.get("department_form")
+        if department_form is None and unscoped:
+            department_form = DepartmentForm()
         return {
             "users": users_visible_to(user),
             "form": kwargs.get("form") or InviteForm(user),
             "error": kwargs.get("error"),
+            "departments": Department.objects.all() if unscoped else [],
+            "department_form": department_form,
         }
 
     def target(self, for_update=False):
@@ -896,6 +990,18 @@ class UserInviteView(UsersPanel):
             after={"email": data["email"], "role": data["role"].name},
         )
         return self.refreshed(notice="Invitation sent")
+
+
+class DepartmentCreateView(UsersPanel):
+    def mutate(self, request):
+        if request.user.department_id is not None:
+            raise PermissionDenied
+        form = DepartmentForm(request.POST)
+        if not form.is_valid():
+            return self.render_panel(department_form=form)
+        department = Department.objects.create(name=form.cleaned_data["name"])
+        audit(request.user, "department.create", department, after={"name": department.name})
+        return self.refreshed(notice=f"Department {department.name} added")
 
 
 class UserToggleView(UsersPanel):
@@ -946,8 +1052,11 @@ class RolesPanel(PanelView):
     title = "Roles"
 
     def panel_context(self, **kwargs):
+        roles = list(Role.objects.annotate(user_count=Count("user")))
+        for role in roles:
+            role.labels = [PERM_LABELS.get(code, code) for code in role.permissions]
         return {
-            "roles": Role.objects.annotate(user_count=Count("user")),
+            "roles": roles,
             "form": kwargs.get("form") or RoleForm(),
             "editing": kwargs.get("editing"),
             "error": kwargs.get("error"),

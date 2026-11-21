@@ -8,7 +8,7 @@ section.card
         tr
           th Code
           th Name
-          th Length
+          th Periods per class
           th Department
           th Active
           th Actions
@@ -25,16 +25,19 @@ section.card
               else
                 span.badge inactive
             td
-              a(href="{% url 'subject-edit' pk=subject.pk %}" hx-get="{% url 'subject-edit' pk=subject.pk %}" hx-target="#panel") Edit
-              |  
-              form.inline(method="post" action="{% url 'subject-toggle' pk=subject.pk %}" hx-post="{% url 'subject-toggle' pk=subject.pk %}" hx-target="#panel")
-                - csrf_token
-                if subject.active
-                  button.link(type="submit") Deactivate
-                else
-                  button.link(type="submit") Reactivate
+              if subject.editable
+                a(href="{% url 'subject-edit' pk=subject.pk %}" hx-get="{% url 'subject-edit' pk=subject.pk %}" hx-target="#panel") Edit
+                |  
+                form.inline(method="post" action="{% url 'subject-toggle' pk=subject.pk %}" hx-post="{% url 'subject-toggle' pk=subject.pk %}" hx-target="#panel")
+                  - csrf_token
+                  if subject.active
+                    button.link(type="submit") Deactivate
+                  else
+                    button.link(type="submit") Reactivate
+              else
+                span.muted Shared, admin only
   else
-    p.muted No subjects yet.
+    p.muted No subjects yet. Add the first one with the form below.
 section.card
   if editing
     h2 Edit #{editing.code}

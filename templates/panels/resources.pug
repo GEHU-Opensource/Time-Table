@@ -1,5 +1,5 @@
 section.card
-  h1 Resources
+  h1 Teachers, rooms and sections
   nav.tabs
     each value, label in kinds
       a(href="{% url 'panel-resources' %}?kind={{ value }}" hx-get="{% url 'panel-resources' %}?kind={{ value }}" hx-target="#panel" hx-push-url="true" class="{% if value == kind %}active{% endif %}")= label
@@ -12,10 +12,16 @@ section.card
           th Code
           th Name
           th Department
-          th Capacity
-          th Tags
-          th Max load
-          th Parent
+          if kind == 'teacher'
+            th Max classes per week
+          elif kind == 'room'
+            th Seats
+            th Room type tags
+          elif kind == 'section'
+            th Students
+          else
+            th Students
+            th Section
           th Active
           if 'resource.manage' in perms
             th Actions
@@ -25,34 +31,42 @@ section.card
             td= resource.code
             td= resource.name
             td= resource.department|default:"Shared"
-            td= resource.capacity
-            td
-              each tag in resource.tags
-                span.badge= tag
-                |  
-            td= resource.max_load|default_if_none:"-"
-            td= resource.parent|default_if_none:"-"
+            if kind == 'teacher'
+              td= resource.max_load|default_if_none:"-"
+            elif kind == 'room'
+              td= resource.capacity
+              td
+                each tag in resource.tags
+                  span.badge= tag
+            elif kind == 'section'
+              td= resource.capacity
+            else
+              td= resource.capacity
+              td= resource.parent|default_if_none:"-"
             td
               if resource.active
                 span.badge.published active
               else
                 span.badge inactive
-            if 'resource.manage' in perms
+            if resource.editable
               td
                 a(href="{% url 'resource-edit' pk=resource.pk %}" hx-get="{% url 'resource-edit' pk=resource.pk %}" hx-target="#panel") Edit
-                |  
+                |
                 form.inline(method="post" action="{% url 'resource-toggle' pk=resource.pk %}" hx-post="{% url 'resource-toggle' pk=resource.pk %}" hx-target="#panel")
                   - csrf_token
                   if resource.active
                     button.link(type="submit") Deactivate
                   else
                     button.link(type="submit") Reactivate
+            elif 'resource.manage' in perms
+              td
+                span.muted Shared, admin only
   else
-    p.muted Nothing of this kind yet.
+    p.muted None added yet. Add the first one with the form below.
 if form
   section.card
     if editing
       h2 Edit #{editing.code}
     else
-      h2 New resource
+      h2 Add a #{kind}
     include panels/_resource_form.pug

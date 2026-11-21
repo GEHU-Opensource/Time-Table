@@ -167,3 +167,47 @@ def test_anonymous_is_redirected_to_login(client, tenant, name, kwargs):
     assert response.status_code == 302
     assert response["Location"].startswith(reverse("login"))
     assert "next=" in response["Location"]
+
+
+def test_hod_gets_no_edit_links_for_shared_rows(as_hod, department):
+    own_room = Resource.objects.create(kind="room", code="OWN1", capacity=40, department=department)
+    shared_room = Resource.objects.create(kind="room", code="SHARED1", capacity=40)
+    own_subject = Subject.objects.create(code="OWNSUB", name="Own", department=department)
+    shared_subject = Subject.objects.create(code="SHAREDSUB", name="Shared")
+    rooms = as_hod.get(reverse("panel-resources"), {"kind": "room"}, headers=HX).content.decode()
+    assert reverse("resource-edit", kwargs={"pk": own_room.pk}) in rooms
+    assert reverse("resource-edit", kwargs={"pk": shared_room.pk}) not in rooms
+    assert "SHARED1" in rooms
+    subjects = as_hod.get(reverse("panel-subjects"), headers=HX).content.decode()
+    assert reverse("subject-edit", kwargs={"pk": own_subject.pk}) in subjects
+    assert reverse("subject-edit", kwargs={"pk": shared_subject.pk}) not in subjects
+    assert "SHAREDSUB" in subjects
+
+
+def test_hod_is_told_to_ask_an_admin_to_publish(as_hod, hod_user, department):
+    timetable = make_timetable("CSE Sem 5", department)
+    version = Version.objects.create(timetable=timetable, number=1, grid=GRID, created_by=hod_user)
+    subject = Subject.objects.create(code="OS", name="Operating Systems", department=department)
+    section = Resource.objects.create(kind="section", code="A", capacity=60, department=department)
+    requirement = version.requirements.create(subject=subject, sessions=1)
+    version.assignments.create(
+        requirement=requirement, session=0, resource=section, day=0, period=0
+    )
+    url = reverse("version-detail", kwargs={"pk": version.pk})
+    page = as_hod.get(url, headers=HX).content.decode()
+    assert "ask an administrator to publish it" in page
+    assert reverse("version-publish", kwargs={"pk": version.pk}) not in page
+
+
+def test_hod_cannot_add_departments(as_hod):
+    assert as_hod.post(reverse("department-create"), {"name": "Robotics"}).status_code == 403
+
+
+def test_admin_adds_a_department_once(as_admin):
+    url = reverse("department-create")
+    created = as_admin.post(url, {"name": "Mechanical"}, headers=HX)
+    assert created.status_code == 200
+    assert "Department Mechanical added" in created.content.decode()
+    duplicate = as_admin.post(url, {"name": "mechanical"}, headers=HX)
+    assert "already exists" in duplicate.content.decode()
+    assert Department.objects.filter(name__iexact="mechanical").count() == 1

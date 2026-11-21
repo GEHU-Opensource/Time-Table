@@ -1,10 +1,33 @@
+if requirement_form.missing
+  p.flash.warning You have no #{requirement_form.missing|join:", "} yet. Add them under Teachers &amp; Rooms and Subjects first, then come back here.
 form.stack(method="post" action="{% if editing %}{% url 'requirement-edit' pk=editing.pk %}{% else %}{% url 'requirement-add' pk=version.pk %}{% endif %}" hx-post="{% if editing %}{% url 'requirement-edit' pk=editing.pk %}{% else %}{% url 'requirement-add' pk=version.pk %}{% endif %}" hx-target="#panel")
   - csrf_token
-  | {{ requirement_form.as_div }}
+  | {{ requirement_form.non_field_errors }}
+  div
+    | {{ requirement_form.subject.as_field_group }}
+  div
+    | {{ requirement_form.sessions.as_field_group }}
+  div
+    | {{ requirement_form.teachers.as_field_group }}
+  div
+    | {{ requirement_form.attendees.as_field_group }}
+  details(open=requirement_form.advanced_open)
+    summary More options: room type, fixed room, fixed times
+    div.fields
+      div
+        | {{ requirement_form.length.as_field_group }}
+      div
+        | {{ requirement_form.rooms_needed.as_field_group }}
+      div
+        | {{ requirement_form.room_tag.as_field_group }}
+      div
+        | {{ requirement_form.fixed_room.as_field_group }}
+      div
+        | {{ requirement_form.fixed_slots.as_field_group }}
   div
     if editing
       button(type="submit") Save requirement
-      |  
+      |
       a.button.secondary(href="{% url 'version-detail' pk=version.pk %}" hx-get="{% url 'version-detail' pk=version.pk %}" hx-target="#panel") Cancel
     else
       button(type="submit") Add requirement

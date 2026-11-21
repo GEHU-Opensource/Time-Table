@@ -3,6 +3,11 @@ section.card
     a(href="{% url 'timetable-detail' pk=timetable.pk %}" hx-get="{% url 'timetable-detail' pk=timetable.pk %}" hx-target="#panel" hx-push-url="true") #{timetable.name}
   h1 #{timetable.name} v#{version.number}
   include timetable/status.pug
+  ol.steps
+    li(class="{% if requirements %}done{% endif %}") Add requirements
+    li(class="{% if ready %}done{% endif %}") Generate
+    li(class="{% if ready %}done{% endif %}") Review timetable
+    li(class="{% if version.status == 'published' %}done{% endif %}") Publish
   if version.reason
     p.muted= version.reason
   if notice
@@ -15,16 +20,30 @@ section.card
       ul.errorlist
         each violation in violations
           li= violation
+  if stale
+    p.flash.warning The requirements changed after this timetable was generated. Press Generate timetable to update it.
+  elif ready and version.status == 'draft'
+    if can_publish
+      p.flash.success The timetable is ready. Check it below, then publish it.
+    else
+      p.flash.success The timetable is ready. Check it below, then ask an administrator to publish it.
   div.row
     if can_generate
       form.inline(method="post" action="{% url 'version-solve' pk=version.pk %}" hx-post="{% url 'version-solve' pk=version.pk %}" hx-target="#panel")
         - csrf_token
-        button(type="submit") Generate
+        if ready
+          button.secondary(type="submit") Generate again
+        elif requirements
+          button(type="submit") Generate timetable
+        else
+          button(type="submit" disabled) Generate timetable
+      unless requirements
+        span.muted Add at least one requirement below first.
     if can_reopen
       form.inline(method="post" action="{% url 'version-reopen' pk=version.pk %}" hx-post="{% url 'version-reopen' pk=version.pk %}" hx-target="#panel")
         - csrf_token
         button.secondary(type="submit") Reopen
-  if can_publish
+  if can_publish and ready
     form.row(method="post" action="{% url 'version-publish' pk=version.pk %}" hx-post="{% url 'version-publish' pk=version.pk %}" hx-target="#panel")
       - csrf_token
       | {{ publish_form.as_div }}
@@ -37,18 +56,31 @@ section.card
           each other in others
             option(value="{{ other.pk }}") v#{other.number} (#{other.status})
       button.secondary(type="submit") Compare
+if generated
+  section.card
+    h2 Timetable
+    p.muted Showing #{preview_resource.kind} #{preview_resource.code}. Pick a section, teacher or room to see its week.
+    div.chips
+      each link in resource_links
+        a(href="{{ link.url }}" hx-get="{{ link.url }}" hx-target="#panel" hx-push-url="true") #{link.resource.kind} #{link.resource.code}
+    include timetable/_grid_table.pug
+elif requirements
+  section.card
+    h2 Timetable
+    p.muted Nothing generated yet. Press Generate timetable above to build it from the requirements below.
 section.card
   h2 Requirements
+  p.muted One row per class to schedule: the subject, who teaches it, which section attends, and how many times a week.
   if requirements
     table
       thead
         tr
           th Subject
           th Teachers
-          th Attendees
-          th Sessions
-          th Length
-          th Room tag
+          th Sections
+          th Per week
+          th Periods
+          th Room type
           th Rooms
           th Fixed room
           th Fixed slots
@@ -69,12 +101,12 @@ section.card
             if editable
               td
                 a(href="{% url 'requirement-edit' pk=row.requirement.pk %}" hx-get="{% url 'requirement-edit' pk=row.requirement.pk %}" hx-target="#panel") Edit
-                |  
+                |
                 form.inline(method="post" action="{% url 'requirement-delete' pk=row.requirement.pk %}" hx-post="{% url 'requirement-delete' pk=row.requirement.pk %}" hx-target="#panel")
                   - csrf_token
                   button.link(type="submit") Delete
   else
-    p.muted No requirements yet.
+    p.muted No requirements yet. Add the first one with the form below.
 if requirement_form
   section.card
     if editing
@@ -82,9 +114,3 @@ if requirement_form
     else
       h2 Add requirement
     include timetable/requirement_form.pug
-if resource_links
-  section.card
-    h2 Grids
-    each link in resource_links
-      a(href="{{ link.url }}" hx-get="{{ link.url }}" hx-target="#panel" hx-push-url="true") #{link.resource.kind} #{link.resource.code}
-      |  

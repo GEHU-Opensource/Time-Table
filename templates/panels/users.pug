@@ -45,8 +45,23 @@ section.card
               button.link(type="submit") Reset MFA
 section.card
   h2 Invite a user
+  p.muted They get an email with a link to set their own password.
   form.stack(method="post" action="{% url 'user-invite' %}" hx-post="{% url 'user-invite' %}" hx-target="#panel")
     - csrf_token
     | {{ form.as_div }}
     div
       button(type="submit") Send invitation
+if department_form
+  section.card
+    h2 Departments
+    p.muted A head of department sees and edits only their own department's teachers, sections, subjects and timetables. Anything marked Shared is visible to everyone but only an administrator can change it.
+    if departments
+      div.chips
+        each department in departments
+          span.badge= department.name
+    else
+      p.muted No departments yet, so everything is shared. Add one to start separating departments.
+    form.row(method="post" action="{% url 'department-create' %}" hx-post="{% url 'department-create' %}" hx-target="#panel")
+      - csrf_token
+      | {{ department_form.as_div }}
+      button(type="submit") Add department

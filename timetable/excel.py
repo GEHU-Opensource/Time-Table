@@ -1,12 +1,13 @@
 import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from io import BytesIO
 from types import SimpleNamespace
 
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.utils import timezone
 from openpyxl import Workbook, load_workbook
 
 from core.perms import Perm, can
@@ -845,6 +846,62 @@ def export_version(version):
     for resource in ordered:
         write_grid_sheet(workbook, used, resource.code, cells_for(resource, groups), grid)
     write_requirements_sheet(workbook, used, requirements, grid)
+    buffer = BytesIO()
+    workbook.save(buffer)
+    return buffer.getvalue()
+
+
+def sample_rows(today):
+    return {
+        GRID: [
+            ["name", "Sample Semester"],
+            ["department", ""],
+            ["start_date", today.isoformat()],
+            ["end_date", (today + timedelta(days=180)).isoformat()],
+            ["days", "Mon,Tue,Wed,Thu,Fri"],
+            list(COLUMNS[GRID]),
+            [1, "09:00", "10:00", "no"],
+            [2, "10:00", "11:00", "yes"],
+            [3, "11:15", "12:15", "no"],
+            [4, "12:15", "13:15", "yes"],
+            [5, "14:00", "15:00", "no"],
+            [6, "15:00", "16:00", "no"],
+        ],
+        TEACHERS: [
+            list(COLUMNS[TEACHERS]),
+            ["T01", "Asha Rao", "", 18, "Mon P1-P2", ""],
+            ["T02", "Bala Iyer", "", 16, "", "Tue P3"],
+        ],
+        ROOMS: [
+            list(COLUMNS[ROOMS]),
+            ["R101", 60, "lecture"],
+            ["LAB1", 30, "lab"],
+        ],
+        SECTIONS: [
+            list(COLUMNS[SECTIONS]),
+            ["CSE-A", 60, "", ""],
+            ["CSE-A1", 30, "", "CSE-A"],
+        ],
+        SUBJECTS: [
+            list(COLUMNS[SUBJECTS]),
+            ["MATH", "Mathematics", 1, "lecture"],
+            ["DSLAB", "Data Structures Lab", 2, "lab"],
+        ],
+        REQUIREMENTS: [
+            list(COLUMNS[REQUIREMENTS]),
+            ["CSE-A", "MATH", "T01", 3, "lecture", 1, ""],
+            ["CSE-A1", "DSLAB", "T02", 1, "lab", 1, ""],
+        ],
+    }
+
+
+def sample_workbook():
+    workbook = Workbook()
+    workbook.remove(workbook.active)
+    for title, rows in sample_rows(timezone.localdate()).items():
+        sheet = workbook.create_sheet(title)
+        for row in rows:
+            sheet.append(row)
     buffer = BytesIO()
     workbook.save(buffer)
     return buffer.getvalue()

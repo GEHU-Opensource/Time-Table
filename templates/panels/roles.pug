@@ -16,8 +16,8 @@ section.card
         tr
           td= role.name
           td
-            each code in role.permissions
-              span.badge= code
+            each label in role.labels
+              span.badge= label
               |  
           td= role.user_count
           td
